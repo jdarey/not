@@ -4,61 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>notimoon ✦ streamerka · minecraft builder</title>
+<!-- SEO & OG meta tagi -->
+<meta name="description" content="notimoon_ — streamerka TikTok i Twitch, minecraft builderka, robloxerka. Wieczorne live'y, moonie family i chaos, którego nie da się podrobić.">
+<meta name="theme-color" content="#b942ff">
+<meta property="og:type" content="website">
+<meta property="og:title" content="notimoon_ ✦ streamerka · minecraft builder">
+<meta property="og:description" content="Wieczorne live'y na TikToku, restreamy na Twitchu, budowle w Minecrafcie i chaos w Robloxie. Wpadnij — zostajesz na dłużej.">
+<meta property="og:image" content="https://og-image.notimoon.pl/og.png">
+<meta property="og:url" content="https://notimoon.pl">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="notimoon_ ✦ streamerka">
+<meta name="twitter:description" content="Wieczorne live'y, minecraft buildy i moonie family 🌙">
+<!-- Animated favicon via canvas (injected by JS) -->
+<link id="faviconLink" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🌙</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root, [data-theme="moon"] {
-    --bg: #0a0712; --bg2: #120d1f; --bg3: #1a1230;
-    --card: rgba(167,139,250,.05); --card2: rgba(167,139,250,.1);
-    --line: rgba(167,139,250,.14); --line2: rgba(167,139,250,.3);
-    --txt: #ece8f6; --mut: #a89dc4; --dim: #6b5f8d;
-    --acc: #a78bfa; --acc-soft: #c4b5fd; --acc2: #f0abfc;
-    --g1: #8b5cf6; --g2: #d946ef;
-    --glow: rgba(167,139,250,.4);
-    --haze1: rgba(139,92,246,.22); --haze2: rgba(217,70,239,.12);
+    --bg: #030008; --bg2: #0a0117; --bg3: #14022a;
+    --card: rgba(162,59,255,.04); --card2: rgba(162,59,255,.1);
+    --line: rgba(162,59,255,.15); --line2: rgba(162,59,255,.35);
+    --txt: #f4ebff; --mut: #bca0e6; --dim: #7f5cba;
+    --acc: #b942ff; --acc-soft: #d37dff; --acc2: #f2b8ff;
+    --g1: #9b20ff; --g2: #f200ff;
+    --glow: rgba(185,66,255,.45);
+    --haze1: rgba(155,32,255,.25); --haze2: rgba(242,0,255,.15);
   }
-  [data-theme="rose"] {
-    --bg: #140509; --bg2: #1f0a12; --bg3: #2d0f1b;
-    --card: rgba(251,113,133,.05); --card2: rgba(251,113,133,.1);
-    --line: rgba(251,113,133,.15); --line2: rgba(251,113,133,.32);
-    --txt: #fbe9ee; --mut: #c79aa8; --dim: #8d5f6d;
-    --acc: #fb7185; --acc-soft: #fda4af; --acc2: #f9a8d4;
-    --g1: #e11d48; --g2: #ec4899;
-    --glow: rgba(251,113,133,.4);
-    --haze1: rgba(225,29,72,.2); --haze2: rgba(236,72,153,.12);
+  [data-theme="custom"] {
+    --bg: var(--c-bg, #030008); --bg2: var(--c-bg2, #0a0117); --bg3: var(--c-bg3, #14022a);
+    --card: var(--c-card, rgba(162,59,255,.04)); --card2: var(--c-card2, rgba(162,59,255,.1));
+    --line: var(--c-line, rgba(162,59,255,.15)); --line2: var(--c-line2, rgba(162,59,255,.35));
+    --txt: var(--c-txt, #f4ebff); --mut: var(--c-mut, #bca0e6); --dim: var(--c-dim, #7f5cba);
+    --acc: var(--c-acc, #b942ff); --acc-soft: var(--c-acc-soft, #d37dff); --acc2: var(--c-acc2, #f2b8ff);
+    --g1: var(--c-g1, #9b20ff); --g2: var(--c-g2, #f200ff);
+    --glow: var(--c-glow, rgba(185,66,255,.45));
+    --haze1: var(--c-haze1, rgba(155,32,255,.25)); --haze2: var(--c-haze2, rgba(242,0,255,.15));
+    --star: var(--c-star, #fff);
   }
-  [data-theme="ocean"] {
-    --bg: #03070f; --bg2: #060e1c; --bg3: #0a172e;
-    --card: rgba(56,189,248,.05); --card2: rgba(56,189,248,.1);
-    --line: rgba(56,189,248,.14); --line2: rgba(56,189,248,.3);
-    --txt: #e6f2fb; --mut: #93b2c9; --dim: #587590;
-    --acc: #38bdf8; --acc-soft: #7dd3fc; --acc2: #67e8f9;
-    --g1: #0284c7; --g2: #06b6d4;
-    --glow: rgba(56,189,248,.4);
-    --haze1: rgba(2,132,199,.22); --haze2: rgba(6,182,212,.12);
+
+  /* Custom color picker panel */
+  .custom-picker-panel {
+    position: top;
+    display: none;
   }
-  [data-theme="sunset"] {
-    --bg: #120802; --bg2: #1d0e05; --bg3: #2b1608;
-    --card: rgba(251,146,60,.05); --card2: rgba(251,146,60,.1);
-    --line: rgba(251,146,60,.15); --line2: rgba(251,146,60,.32);
-    --txt: #fbf0e6; --mut: #c9ab93; --dim: #8d7158;
-    --acc: #fb923c; --acc-soft: #fdba74; --acc2: #fbbf24;
-    --g1: #ea580c; --g2: #f59e0b;
-    --glow: rgba(251,146,60,.4);
-    --haze1: rgba(234,88,12,.2); --haze2: rgba(245,158,11,.12);
-  }
-  [data-theme="light"] {
-    --bg: #f6f3fb; --bg2: #ffffff; --bg3: #ede8f7;
-    --card: rgba(255,255,255,.75); --card2: rgba(139,92,246,.07);
-    --line: rgba(109,80,180,.14); --line2: rgba(109,80,180,.3);
-    --txt: #2b2244; --mut: #6b5f8d; --dim: #9a8fb8;
-    --acc: #7c5ce0; --acc-soft: #6d4fd0; --acc2: #c026d3;
-    --g1: #7c5ce0; --g2: #c026d3;
-    --glow: rgba(124,92,224,.3);
-    --haze1: rgba(139,92,246,.14); --haze2: rgba(192,38,211,.08);
-    --star: rgba(124,92,224,.5);
+  .custom-picker-panel.open {
+    display: block;
   }
 
   * { font-family: 'Manrope', sans-serif; box-sizing: border-box; }
@@ -178,9 +170,7 @@
     50% { transform: rotate(0deg) scale(1.1); }
     75% { transform: rotate(-8deg) scale(1.05); }
     100% { transform: rotate(0deg) scale(1); }
-  }
-
-  .cat-clicked { }
+  } 
 
   /* ===== CAT SPEECH BUBBLE ===== */
   .cat-bubble {
@@ -491,6 +481,94 @@
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
   body { animation: pageIn .9s ease both; }
 
+  /* ===== CUSTOM CURSOR ===== */
+  @media (pointer: fine) {
+    * { cursor: none !important; }
+  }
+  #cursorMain {
+    position: fixed; z-index: 99999; pointer-events: none;
+    width: 18px; height: 18px; margin: -9px 0 0 -9px;
+    transition: transform .12s ease, opacity .3s ease;
+    will-change: transform;
+  }
+  #cursorRing {
+    position: fixed; z-index: 99998; pointer-events: none;
+    width: 36px; height: 36px; margin: -18px 0 0 -18px;
+    border: 1.5px solid color-mix(in srgb, var(--acc) 55%, transparent);
+    border-radius: 50%;
+    transition: transform .22s cubic-bezier(.25,.8,.25,1), width .22s ease, height .22s ease, margin .22s ease, opacity .3s ease, border-color .3s ease;
+    will-change: transform;
+  }
+  body:has(a:hover) #cursorRing,
+  body:has(button:hover) #cursorRing { 
+    width: 48px; height: 48px; margin: -24px 0 0 -24px;
+    border-color: color-mix(in srgb, var(--acc) 80%, transparent);
+  }
+  body:has(a:hover) #cursorMain,
+  body:has(button:hover) #cursorMain { transform: scale(1.3); }
+
+  /* ===== PARTICLE TRAIL ===== */
+  .cursor-particle {
+    position: fixed; z-index: 99997; pointer-events: none;
+    border-radius: 50%; will-change: transform, opacity;
+    animation: particleFade .7s ease-out forwards;
+  }
+  @keyframes particleFade {
+    0% { opacity: .9; transform: scale(1) translate(0,0); }
+    100% { opacity: 0; transform: scale(0) translate(var(--px), var(--py)); }
+  }
+
+  /* ===== STARFIELD CANVAS ===== */
+  #starCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* ===== AMBIENT AUDIO BUTTON ===== */
+  #ambientBtn {
+    position: fixed; left: 18px; bottom: 18px; z-index: 90;
+    width: 44px; height: 44px; border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--card2); border: 1px solid var(--line2);
+    backdrop-filter: blur(10px); color: var(--acc-soft);
+    font-size: 1.1rem; cursor: pointer;
+    transition: box-shadow .4s ease, transform .3s ease, background .3s ease;
+  }
+  #ambientBtn:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
+  #ambientBtn.playing { background: color-mix(in srgb, var(--acc) 18%, var(--card2)); border-color: var(--acc); animation: ambientPulse 2s ease-in-out infinite; }
+  @keyframes ambientPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
+
+  /* ===== FAQ ACCORDION ===== */
+  .faq-item { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; transition: border-color .4s ease; }
+  .faq-item:hover { border-color: var(--line2); }
+  .faq-q {
+    width: 100%; text-align: left; padding: 1.2rem 1.4rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    background: var(--card); font-weight: 700; font-size: .9rem; color: var(--txt);
+    cursor: pointer; transition: background .3s ease;
+    border: none;
+  }
+  .faq-q:hover { background: var(--card2); }
+  .faq-arr { font-size: 1rem; color: var(--acc); transition: transform .4s cubic-bezier(.25,.8,.25,1); flex-shrink: 0; }
+  .faq-item.open .faq-arr { transform: rotate(45deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height .5s cubic-bezier(.16,1,.3,1), padding .4s ease;
+    padding: 0 1.4rem; color: var(--mut); font-size: .88rem; line-height: 1.65;
+  }
+  .faq-item.open .faq-a { max-height: 300px; padding: .1rem 1.4rem 1.2rem; }
+
+  /* ===== EASTER EGG OVERLAY ===== */
+  #easterEggOverlay {
+    position: fixed; inset: 0; z-index: 99990;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
+    background: rgba(3,0,8,.92); backdrop-filter: blur(20px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .6s ease;
+  }
+  #easterEggOverlay.show { opacity: 1; pointer-events: auto; }
+  #easterEggOverlay .egg-title { font-family: 'Unbounded', sans-serif; font-size: clamp(1.4rem, 5vw, 3rem); font-weight: 800; background: linear-gradient(135deg, var(--g1), var(--g2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+  #easterEggOverlay .egg-sub { color: var(--mut); font-size: .9rem; text-align: center; }
+  #easterEggClose { margin-top: .5rem; padding: .7rem 2rem; border-radius: 999px; background: var(--card2); border: 1px solid var(--line2); color: var(--acc-soft); font-weight: 700; cursor: pointer; transition: all .3s ease; }
+  #easterEggClose:hover { background: color-mix(in srgb, var(--acc) 20%, var(--card2)); }
+
 
   .cd-num {
     display: inline-block;
@@ -508,7 +586,7 @@
   .admin-overlay {
     position: fixed; inset: 0; z-index: 200;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,.75); backdrop-filter: blur(18px);
+    background: rgba(4,1,10,.85); backdrop-filter: blur(24px);
     opacity: 0; pointer-events: none;
     transition: opacity .4s ease;
     padding: 1rem;
@@ -517,62 +595,63 @@
   .admin-card {
     width: min(1320px, calc(100vw - 1.5rem));
     max-height: min(94vh, 980px);
-    border-radius: 26px;
+    border-radius: 28px;
     display: flex;
     overflow: hidden;
-    transform: translateY(18px) scale(.97);
+    transform: translateY(20px) scale(.95);
     transition: transform .5s cubic-bezier(.16,1,.3,1);
     background:
-      radial-gradient(ellipse at 20% 20%, color-mix(in srgb, var(--acc) 25%, transparent), transparent 50%),
-      radial-gradient(ellipse at 80% 80%, color-mix(in srgb, var(--g2) 18%, transparent), transparent 50%),
-      radial-gradient(ellipse at 50% 50%, var(--bg3), var(--bg));
-    border: 1px solid var(--line2);
-    box-shadow: 0 24px 80px rgba(0,0,0,.55), 0 0 0 1px color-mix(in srgb, var(--acc) 10%, transparent);
+      radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--acc) 20%, transparent), transparent 45%),
+      radial-gradient(ellipse at 80% 100%, color-mix(in srgb, var(--acc2) 20%, transparent), transparent 45%),
+      rgba(10,5,20, 0.65);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 30px 100px -10px rgba(0,0,0,.8), 0 0 0 1px color-mix(in srgb, var(--acc) 15%, transparent), inset 0 1px 1px rgba(255,255,255,.05);
     position: relative;
   }
   .admin-overlay.open .admin-card { transform: none; }
 
-  /* Brak kotów - usunięto zgodnie z prośbą */
   /* Sidebar */
   .admin-sidebar {
-    width: 230px;
+    width: 250px;
     flex-shrink: 0;
-    padding: 1.25rem .75rem 1rem;
+    padding: 1.5rem 1rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: .1rem;
-    border-right: 1px solid var(--line);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--bg3) 70%, transparent), color-mix(in srgb, var(--bg2) 50%, transparent));
+    gap: .25rem;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.2);
   }
   .admin-sidebar-header {
-    padding: .5rem .75rem .7rem;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: .6rem;
+    padding: .5rem .75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 1rem;
   }
-  .admin-sidebar-header h3 { font-size: .85rem; font-weight: 700; margin-bottom: .1rem; }
-  .admin-sidebar-header p { font-size: .55rem; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: .15em; margin: 0; }
+  .admin-sidebar-header h3 { font-size: .95rem; font-weight: 800; margin-bottom: .2rem; color: var(--txt); }
+  .admin-sidebar-header p { font-size: .6rem; color: var(--acc-soft); font-weight: 800; text-transform: uppercase; letter-spacing: .2em; margin: 0; }
   .admin-sb-btn {
     display: flex;
     align-items: center;
-    gap: .65rem;
-    padding: .55rem .75rem;
-    border-radius: 12px;
-    font-size: .76rem;
+    gap: .75rem;
+    padding: .65rem .85rem;
+    border-radius: 14px;
+    font-size: .78rem;
     font-weight: 700;
     color: var(--mut);
-    transition: all .2s ease;
+    transition: all .25s cubic-bezier(.25,.8,.25,1);
     border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
     text-align: left;
     width: 100%;
   }
-  .admin-sb-btn:hover { color: var(--txt); background: var(--card); border-color: var(--line); }
+  .admin-sb-btn:hover { color: var(--txt); background: rgba(255,255,255,0.03); transform: translateX(3px); }
   .admin-sb-btn.active {
     color: var(--txt);
-    background: color-mix(in srgb, var(--acc) 16%, transparent);
-    border-color: color-mix(in srgb, var(--acc) 28%, transparent);
-    box-shadow: 0 2px 12px -4px var(--glow);
+    background: color-mix(in srgb, var(--acc) 20%, transparent);
+    border-color: color-mix(in srgb, var(--acc) 30%, transparent);
+    box-shadow: 0 4px 20px -5px color-mix(in srgb, var(--acc) 40%, transparent);
+    transform: translateX(4px);
   }
   .admin-sb-btn .sb-icon { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
   .admin-sidebar-foot {
@@ -803,6 +882,33 @@
 </head>
 <body class="relative">
 
+<!-- ===== STARFIELD CANVAS ===== -->
+<canvas id="starCanvas"></canvas>
+
+<!-- ===== CUSTOM CURSOR ===== -->
+<div id="cursorMain">
+  <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+    <path d="M9 0 L10.5 6.5 L17 9 L10.5 11.5 L9 18 L7.5 11.5 L1 9 L7.5 6.5 Z" fill="var(--acc)" opacity="0.95"/>
+  </svg>
+</div>
+<div id="cursorRing"></div>
+
+<!-- ===== AMBIENT AUDIO BUTTON ===== -->
+<button id="ambientBtn" title="ambient lo-fi (wł/wył)">🎵</button>
+<!-- Hidden ambient audio — YouTube iframe -->
+<div id="ambientContainer" style="position:fixed;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0">
+  <iframe id="ambientFrame" width="1" height="1" src="" frameborder="0" allow="autoplay" title="ambient"></iframe>
+</div>
+
+<!-- ===== EASTER EGG OVERLAY ===== -->
+<div id="easterEggOverlay">
+  <div style="font-size:4rem;animation:moonGlowPulse 2s ease-in-out infinite">🌙</div>
+  <div class="egg-title">znalazłaś/eś sekret!</div>
+  <div class="egg-sub">↑↑↓↓←→←→BA — klasyczna sekwencja Konami<br>moonie family wie co robi 🐾✦</div>
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem" id="eggStars"></div>
+  <button id="easterEggClose">zamknij ✦</button>
+</div>
+
 <div id="scrollbarTop"></div>
 <div class="stars" id="stars"></div>
 <button id="backTop" aria-label="wróć na górę" title="na górę ✦">🌙</button>
@@ -889,6 +995,36 @@
             <div class="admin-field">
               <label>Stopka (footer)</label>
               <input id="admFooterNote" type="text">
+            </div>
+          </div>
+          <div class="admin-grid-2">
+            <div class="admin-field">
+              <label>Tekst statusu Roblox</label>
+              <textarea id="admRobloxStatus" rows="2"></textarea>
+            </div>
+            <div class="admin-field">
+              <label>Tekst Discord (fallback)</label>
+              <input id="admDiscordText" type="text">
+            </div>
+          </div>
+          <div class="admin-grid-2">
+            <div class="admin-field">
+              <label>Label: Czas trwania</label>
+              <input id="admLabelUptime" type="text">
+            </div>
+            <div class="admin-field">
+              <label>Label: Gra</label>
+              <input id="admLabelGame" type="text">
+            </div>
+          </div>
+          <div class="admin-grid-2">
+            <div class="admin-field">
+              <label>Label: Tytuł</label>
+              <input id="admLabelTitle" type="text">
+            </div>
+            <div class="admin-field">
+              <label>Tekst offline (status)</label>
+              <input id="admOfflineText" type="text">
             </div>
           </div>
         </div>
@@ -1082,29 +1218,44 @@
       </a>
 
       <div class="hidden lg:flex items-center rounded-full p-1 border" style="background: var(--card); border-color: var(--line);" id="navLinks">
-        <a href="#live" data-sec="live" class="nav-pill">live</a>
-        <a href="#plan" data-sec="plan" class="nav-pill">plan</a>
-        <a href="#games" data-sec="games" class="nav-pill">gry</a>
-        <a href="#socials" data-sec="socials" class="nav-pill">sociale</a>
-        <a href="#zyczenia" data-sec="zyczenia" class="nav-pill">życzenia</a>
+        <a href="#live" data-sec="live" class="nav-pill" id="navLnk1">live</a>
+        <a href="#plan" data-sec="plan" class="nav-pill" id="navLnk2">plan</a>
+        <a href="#games" data-sec="games" class="nav-pill" id="navLnk3">gry</a>
+        <a href="#socials" data-sec="socials" class="nav-pill" id="navLnk4">sociale</a>
+        <a href="#zyczenia" data-sec="zyczenia" class="nav-pill" id="navLnk5">życzenia</a>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div class="hidden sm:flex items-center gap-2 rounded-full px-2.5 py-1.5 border" style="background: var(--card); border-color: var(--line);" id="themePicker" title="zmień motyw">
-          <button class="tdot active" data-t="moon" style="background:linear-gradient(135deg,#8b5cf6,#d946ef)" aria-label="fiolet"></button>
-          <button class="tdot" data-t="rose" style="background:linear-gradient(135deg,#e11d48,#ec4899)" aria-label="róż"></button>
-          <button class="tdot" data-t="ocean" style="background:linear-gradient(135deg,#0284c7,#06b6d4)" aria-label="ocean"></button>
-          <button class="tdot" data-t="sunset" style="background:linear-gradient(135deg,#ea580c,#f59e0b)" aria-label="zachód"></button>
-          <button class="tdot" data-t="light" style="background:linear-gradient(135deg,#ffffff,#d8ccf5)" aria-label="jasny"></button>
+      <div class="flex items-center gap-3" style="position:relative">
+        <div class="flex items-center gap-2 rounded-full px-2.5 py-1.5 border" style="background: var(--card); border-color: var(--line);" id="themePicker" title="zmień motyw">
+          <button class="tdot" data-t="custom" id="customThemeBtn" style="background: conic-gradient(from 0deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #ff6b6b); border: 2px solid #fff;" aria-label="własny kolor" title="własny kolor — kliknij, by wybrać!">🎨</button>
+        </div>
+        <div id="customColorPanel" class="hidden absolute right-0 top-full mt-3 z-50 transform origin-top-right transition-all duration-300 scale-95 opacity-0" style="background: rgba(10,1,23,.90); border: 1px solid rgba(162,59,255,.3); border-radius: 20px; padding: 1.25rem; box-shadow: 0 24px 64px -12px rgba(162,59,255,.35), inset 0 1px 1px rgba(255,255,255,.05); backdrop-filter: blur(24px); min-width: 270px; max-width: 290px;">
+          <p style="font-size:.65rem;font-weight:800;letter-spacing:.25em;text-transform:uppercase;color:var(--acc-soft);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="font-size:1.1rem; filter: drop-shadow(0 0 8px var(--acc))">✨</span> Własny motyw</p>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:.5rem; margin-bottom:1.25rem;">
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#9b20ff" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#9b20ff,#f200ff);box-shadow:0 4px 14px rgba(155,32,255,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#e11d48" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#e11d48,#ec4899);box-shadow:0 4px 14px rgba(225,29,72,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#0284c7" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#0284c7,#06b6d4);box-shadow:0 4px 14px rgba(2,132,199,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#ea580c" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#ea580c,#f59e0b);box-shadow:0 4px 14px rgba(234,88,12,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#10b981" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 14px rgba(16,185,129,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#f43f5e" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#f43f5e,#fb7185);box-shadow:0 4px 14px rgba(244,63,94,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#06b6d4" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#06b6d4,#22d3ee);box-shadow:0 4px 14px rgba(6,182,212,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+            <button class="custom-preset hover:scale-110 active:scale-95" data-color="#f59e0b" style="width:100%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.1);cursor:pointer;background:linear-gradient(135deg,#f59e0b,#fbbf24);box-shadow:0 4px 14px rgba(245,158,11,.4);transition:all .25s cubic-bezier(.25,.8,.25,1)"></button>
+          </div>
+          <div style="background:rgba(255,255,255,.02); padding:1rem; border-radius:16px; border:1px solid rgba(255,255,255,.05); margin-bottom:.75rem">
+            <label style="font-size:.55rem;font-weight:800;color:var(--mut);display:block;margin-bottom:.5rem;letter-spacing:.1em;text-transform:uppercase">precyzyjny kolor</label>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <input type="color" id="customColorPicker" value="#9b20ff" style="width:42px;height:42px;border:2px solid rgba(255,255,255,.15);border-radius:12px;cursor:pointer;background:transparent;padding:0;box-shadow:0 0 15px rgba(155,32,255,.3);transition:all .2s" class="hover:scale-105 active:scale-95">
+              <span id="customColorHex" class="mono" style="font-size:.85rem;font-weight:700;color:var(--txt);letter-spacing:1px;text-shadow:0 2px 4px rgba(0,0,0,.5)">#9b20ff</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            <button id="customApplyBtn" class="btn-main hover:scale-105 active:scale-95" style="flex:1;border-radius:12px;padding:.6rem;font-size:.75rem;transition:all .2s;box-shadow:0 4px 15px rgba(185,66,255,.3)">✦ Zastosuj</button>
+            <button id="customResetBtn" class="btn-line hover:scale-105 active:scale-95" style="border-radius:12px;padding:.6rem .8rem;font-size:.8rem;border:1px solid rgba(255,255,255,.1);transition:all .2s" title="przywróć domyślny">↺</button>
+          </div>
         </div>
         <a href="https://www.tiktok.com/@notimoon_" target="_blank" class="btn-main rounded-full px-5 py-2 text-xs disp font-500 hidden sm:flex items-center gap-1.5">
           <span id="navLiveDot" class="w-1.5 h-1.5 rounded-full bg-white/60"></span> obserwuj
         </a>
-        <div class="flex sm:hidden items-center gap-1.5" id="themePickerMobile">
-          <button class="tdot !w-5 !h-5" data-t="moon" style="background:linear-gradient(135deg,#8b5cf6,#d946ef)" aria-label="fiolet"></button>
-          <button class="tdot !w-5 !h-5" data-t="rose" style="background:linear-gradient(135deg,#e11d48,#ec4899)" aria-label="róż"></button>
-          <button class="tdot !w-5 !h-5" data-t="light" style="background:linear-gradient(135deg,#ffffff,#d8ccf5)" aria-label="jasny"></button>
-        </div>
       </div>
     </div>
   </div>
@@ -1130,7 +1281,7 @@
         </p>
         <div class="flex flex-wrap gap-3">
           <a href="https://www.tiktok.com/@notimoon_/live" target="_blank" class="btn-main rounded-xl px-7 py-3.5 text-sm">✦ oglądaj live</a>
-          <a href="https://dc.gg/noti" target="_blank" class="btn-line rounded-xl px-7 py-3.5 text-sm">discord →</a>
+          <a href="https://dc.gg/notimoon" target="_blank" class="btn-line rounded-xl px-7 py-3.5 text-sm">discord →</a>
         </div>
       </div>
 
@@ -1143,7 +1294,6 @@
         </div>
         <div class="text-center">
           <p class="disp text-sm font-600 mb-1">@notimoon_</p>
-          <p class="text-[.62rem] font-bold tracking-[.2em] uppercase t-dim">zdjęcie aktualizuje się samo</p>
         </div>
       </div>
     </div>
@@ -1166,7 +1316,7 @@
 
       <div class="reveal tile tile-h p-6" style="transition-delay:.18s">
         <div class="flex items-center justify-between mb-4">
-          <p class="label">statystyki · auto</p>
+          <p class="label">statystyki</p>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
         </div>
         <div class="flex items-baseline justify-between mb-3">
@@ -1181,7 +1331,6 @@
           <span class="num-disp text-2xl t-acc" id="ttHearts">···</span>
           <span class="text-[.62rem] font-bold t-dim">serduszek ♡</span>
         </div>
-        <p class="text-[.56rem] font-bold tracking-[.12em] uppercase t-dim mt-3 text-right" id="ttUpdated">ładuję dane…</p>
       </div>
 
       <div class="reveal tile tile-h p-6 flex flex-col" style="transition-delay:.24s">
@@ -1199,8 +1348,8 @@
 <!-- ================= MARQUEE ================= -->
 <div class="relative z-10 py-4 overflow-hidden fade-x border-y" style="border-color: var(--line);">
   <div class="mq-track gap-12 items-center text-[.66rem] font-bold tracking-[.3em] uppercase t-dim whitespace-nowrap" id="marqueeTrack">
-    <span>notimoon_</span><span class="t-acc">✦</span><span>moonie family</span><span class="t-acc">✦</span><span>live na tiktoku</span><span class="t-acc">✦</span><span>minecraft builder</span><span class="t-acc">✦</span><span>roblox nights</span><span class="t-acc">✦</span><span>14 czerwca 🎂</span><span class="t-acc">✦</span><span>dc.gg/noti</span><span class="t-acc">✦</span>
-    <span>notimoon_</span><span class="t-acc">✦</span><span>moonie family</span><span class="t-acc">✦</span><span>live na tiktoku</span><span class="t-acc">✦</span><span>minecraft builder</span><span class="t-acc">✦</span><span>roblox nights</span><span class="t-acc">✦</span><span>14 czerwca 🎂</span><span class="t-acc">✦</span><span>dc.gg/noti</span><span class="t-acc">✦</span>
+    <span>notimoon_</span><span class="t-acc">✦</span><span>moonie family</span><span class="t-acc">✦</span><span>live na tiktoku</span><span class="t-acc">✦</span><span>minecraft builder</span><span class="t-acc">✦</span><span>roblox nights</span><span class="t-acc">✦</span><span>14 czerwca 🎂</span><span class="t-acc">✦</span><span>dc.gg/notimoon</span><span class="t-acc">✦</span>
+    <span>notimoon_</span><span class="t-acc">✦</span><span>moonie family</span><span class="t-acc">✦</span><span>live na tiktoku</span><span class="t-acc">✦</span><span>minecraft builder</span><span class="t-acc">✦</span><span>roblox nights</span><span class="t-acc">✦</span><span>14 czerwca 🎂</span><span class="t-acc">✦</span><span>dc.gg/notimoon</span><span class="t-acc">✦</span>
   </div>
 </div>
 
@@ -1209,7 +1358,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
       <span class="snum">01_live</span>
-      <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600">czy noti <span class="grad-txt">streamuje?</span></h2>
+      <h2 id="h1_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">czy noti <span class="grad-txt">streamuje?</span></h2>
       <div class="sline"></div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -1218,7 +1367,7 @@
           <iframe id="twitchPlayer" class="w-full h-full" allowfullscreen frameborder="0" scrolling="no"></iframe>
         </div>
         <div class="flex items-center justify-between px-3 pt-3.5 pb-1.5 flex-wrap gap-2">
-          <p class="text-xs font-bold t-dim">restream · <span class="t-mut">twitch.tv/notimoon_</span></p>
+          <p class="text-xs font-bold t-dim"> <span class="t-mut">twitch.tv/notimoon_</span></p>
           <a href="https://www.twitch.tv/notimoon_" target="_blank" class="text-xs font-bold t-acc hover:opacity-75 transition">otwórz na twitchu ↗</a>
         </div>
       </div>
@@ -1226,28 +1375,26 @@
         <div class="tile tile-glow tile-h p-6 sm:p-7 flex-1">
           <div class="flex items-center gap-3 mb-4">
             <span id="statusDot" class="w-3 h-3 rounded-full shrink-0" style="background: var(--dim);"></span>
-            <h3 id="statusText" class="disp text-base sm:text-lg font-500">sprawdzam…</h3>
           </div>
           <p class="uptime-disp grad-txt" id="uptimeText">--:--:--</p>
-          <p class="label mt-2 mb-5">czas trwania streama</p>
+          <p class="label mt-2 mb-5" id="labelUptime">czas trwania streama</p>
           <div class="grid gap-2.5 min-w-0">
             <div class="rounded-xl px-4 py-3 border min-w-0 overflow-hidden" style="background: var(--card); border-color: var(--line);">
               <div class="flex items-center justify-between mb-1">
-                <span class="label">gra</span>
+                <span class="label" id="labelGame">gra</span>
                 <span class="text-[.56rem] font-bold tracking-[.18em] uppercase px-2 py-0.5 rounded-full border t-acc" style="border-color: var(--line2); background: var(--card);">auto</span>
               </div>
               <p id="gameText" class="text-sm font-bold break-words leading-snug">—</p>
             </div>
             <div class="rounded-xl px-4 py-3 border min-w-0 overflow-hidden" style="background: var(--card); border-color: var(--line);">
               <div class="flex items-center justify-between mb-1">
-                <span class="label">tytuł</span>
+                <span class="label" id="labelTitle">tytuł</span>
                 <span class="text-[.56rem] font-bold tracking-[.18em] uppercase px-2 py-0.5 rounded-full border t-acc" style="border-color: var(--line2); background: var(--card);">auto</span>
               </div>
               <p id="titleText" class="text-sm font-bold break-words leading-snug">—</p>
             </div>
           </div>
           <div class="scan h-px w-full mt-5 rounded"></div>
-          <p class="text-[.62rem] font-bold t-dim mt-2.5">gra i tytuł aktualizują się same co 60 s</p>
         </div>
         <a href="https://www.tiktok.com/@notimoon_/live" target="_blank" class="tile tile-solid tile-h p-5 sm:p-6 flex items-center justify-between gap-3 group">
           <div class="flex items-center gap-4 min-w-0">
@@ -1269,7 +1416,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
       <span class="snum">02_plan</span>
-      <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600">kiedy <span class="grad-txt">gramy?</span></h2>
+      <h2 id="h2_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">kiedy <span class="grad-txt">gramy?</span></h2>
       <div class="sline"></div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="planGrid">
@@ -1303,7 +1450,7 @@
       </div>
     </div>
     <p class="reveal text-center text-xs font-bold mt-6 t-dim">
-      <span class="t-acc">✦</span> podświetlony kafelek = dzisiejszy stream · ogłoszenia na <a href="https://dc.gg/noti" target="_blank" class="t-acc hover:opacity-75 transition">discordzie</a>
+      <span class="t-acc">✦</span> podświetlony kafelek = dzisiejszy stream · ogłoszenia na <a href="https://dc.gg/notimoon" target="_blank" class="t-acc hover:opacity-75 transition">discordzie</a>
     </p>
   </div>
 </section>
@@ -1313,7 +1460,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
       <span class="snum">03_gry</span>
-      <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600">mój <span class="grad-txt">świat</span></h2>
+      <h2 id="h3_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">mój <span class="grad-txt">świat</span></h2>
       <div class="sline"></div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -1401,7 +1548,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
       <span class="snum">04_sociale</span>
-      <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600">znajdziesz mnie <span class="grad-txt">tutaj</span></h2>
+      <h2 id="h4_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">znajdziesz mnie <span class="grad-txt">tutaj</span></h2>
       <div class="sline"></div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1438,7 +1585,7 @@
           <p class="text-xs font-bold text-rose-400">@_notimoon</p>
         </div>
       </a>
-      <a href="https://dc.gg/noti" target="_blank" class="reveal soc tile tile-h p-7 flex flex-col justify-between min-h-[170px]" style="--soc-b:rgba(129,140,248,.55); transition-delay:.18s">
+      <a href="https://dc.gg/notimoon" target="_blank" class="reveal soc tile tile-h p-7 flex flex-col justify-between min-h-[170px]" style="--soc-b:rgba(129,140,248,.55); transition-delay:.18s">
         <div class="flex items-start justify-between">
           <svg viewBox="0 0 24 24" class="w-7 h-7 text-indigo-400 soc-ico" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           <span class="soc-arr text-lg t-dim shrink-0">↗</span>
@@ -1446,7 +1593,7 @@
         <div>
           <h3 class="disp text-base font-600 mb-1">discord — moonie family</h3>
           <p id="dcMembers" class="text-xs font-semibold mb-2 t-mut">noti czeka na serwerze · dołącz do nas</p>
-          <p class="text-xs font-bold text-indigo-400">dc.gg/noti</p>
+          <p class="text-xs font-bold text-indigo-400">dc.gg/notimoon</p>
         </div>
       </a>
     </div>
@@ -1464,9 +1611,6 @@
       <span class="snum">05_18-stka</span>
       <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600"><span id="wishTitle">ściana</span> <span class="grad-txt">życzeń</span></h2>
       <div class="sline"></div>
-      <span class="hidden sm:flex items-center gap-2 text-[.62rem] font-bold whitespace-nowrap t-dim">
-        <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span> live sync
-      </span>
     </div>
     <div class="reveal min-w-0 mb-6">
       <div id="wishWall" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4"></div>
@@ -1485,7 +1629,6 @@
         <button id="wishBtn" class="btn-main rounded-xl py-3.5 text-sm w-full mb-4">wyślij życzenia ✦</button>
         <div class="flex items-center justify-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot shrink-0"></span>
-          <p class="text-[.6rem] font-bold tracking-[.12em] uppercase t-dim">wspólna ściana · sync co 15 s</p>
         </div>
       </div>
     </div>
@@ -1537,7 +1680,7 @@
           <div class="flex items-center gap-4">
             <a href="mailto:kontakt.notimoon@gmail.com" class="text-[.68rem] font-bold t-acc hover:opacity-75 transition">✉ napisz maila</a>
             <span class="t-dim text-[.6rem]">·</span>
-            <a href="https://dc.gg/noti" target="_blank" class="text-[.68rem] font-bold t-acc hover:opacity-75 transition">💬 discord dm</a>
+            <a href="https://dc.gg/notimoon" target="_blank" class="text-[.68rem] font-bold t-acc hover:opacity-75 transition">💬 discord dm</a>
           </div>
         </div>
       </div>
@@ -1572,7 +1715,7 @@
         <a href="https://www.tiktok.com/@notimoon_" target="_blank" class="hover:text-[--acc-soft] transition">tiktok</a>
         <a href="https://www.twitch.tv/notimoon_" target="_blank" class="hover:text-[--acc-soft] transition">twitch</a>
         <a href="https://www.instagram.com/_notimoon/" target="_blank" class="hover:text-[--acc-soft] transition">instagram</a>
-        <a href="https://dc.gg/noti" target="_blank" class="hover:text-[--acc-soft] transition">discord</a>
+        <a href="https://dc.gg/notimoon" target="_blank" class="hover:text-[--acc-soft] transition">discord</a>
         <a href="mailto:kontakt.notimoon@gmail.com" class="hover:text-[--acc-soft] transition">✉ współpraca</a>
       </div>
       <p id="footerNote" class="text-[.66rem] font-bold t-dim">© 2026 · na 18. urodziny ✦ 14.06</p>
@@ -1614,20 +1757,268 @@ window.addEventListener('error', e => {
   box.textContent = 'Błąd strony: ' + (e.message || 'nieznany błąd');
 });
 
+/* ================= CUSTOM CURSOR ================= */
+(function customCursor() {
+  const cursorMain = $('cursorMain');
+  const cursorRing = $('cursorRing');
+  if (!cursorMain || !cursorRing) return;
+  
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let cursorX = mouseX;
+  let cursorY = mouseY;
+  let ringX = mouseX;
+  let ringY = mouseY;
+  let lastX = mouseX;
+  let lastY = mouseY;
+  let particleTimer = 0;
+  
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    
+    /* Create particle trail */
+    const now = Date.now();
+    if (now - particleTimer > 40) {
+      particleTimer = now;
+      const speed = Math.sqrt(Math.pow(mouseX - lastX, 2) + Math.pow(mouseY - lastY, 2));
+      if (speed > 5) {
+        createParticle(mouseX, mouseY);
+      }
+      lastX = mouseX;
+      lastY = mouseY;
+    }
+  });
+  
+  function createParticle(x, y) {
+    const particle = document.createElement('div');
+    particle.className = 'cursor-particle';
+    const size = 4 + Math.random() * 6;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 20 + Math.random() * 30;
+    particle.style.cssText = `width:${size}px;height:${size}px;background:var(--acc-soft);left:${x}px;top:${y}px;--px:${Math.cos(angle) * distance}px;--py:${Math.sin(angle) * distance}px;opacity:0.8`;
+    document.body.appendChild(particle);
+    setTimeout(() => particle.remove(), 700);
+  }
+  
+  function animate() {
+    const dx = mouseX - cursorX;
+    const dy = mouseY - cursorY;
+    cursorX += dx * 0.15;
+    cursorY += dy * 0.15;
+    cursorMain.style.left = cursorX + 'px';
+    cursorMain.style.top = cursorY + 'px';
+    
+    const rdx = mouseX - ringX;
+    const rdy = mouseY - ringY;
+    ringX += rdx * 0.08;
+    ringY += rdy * 0.08;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top = ringY + 'px';
+    
+    requestAnimationFrame(animate);
+  }
+  animate();
+  
+  /* Hide cursor when leaving window */
+  document.addEventListener('mouseleave', () => {
+    cursorMain.style.opacity = '0';
+    cursorRing.style.opacity = '0';
+  });
+  document.addEventListener('mouseenter', () => {
+    cursorMain.style.opacity = '1';
+    cursorRing.style.opacity = '1';
+  });
+  
+  /* Hide on touch devices */
+  if ('ontouchstart' in window) {
+    cursorMain.style.display = 'none';
+    cursorRing.style.display = 'none';
+    document.documentElement.style.setProperty('--cursor-visible', 'none');
+  }
+})();
+
+/* ================= AMBIENT AUDIO ================= */
+(function ambientAudio() {
+  const btn = $('ambientBtn');
+  const frame = $('ambientFrame');
+  if (!btn || !frame) return;
+  
+  const lofiUrl = 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk&enablejsapi=1';
+  let isPlaying = false;
+  
+  btn.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      frame.src = lofiUrl;
+      btn.classList.add('playing');
+      btn.textContent = '⏸';
+    } else {
+      frame.src = '';
+      btn.classList.remove('playing');
+      btn.textContent = '🎵';
+    }
+  });
+})();
+
 /* ================= MOTYWY ================= */
+function hexToHSL(hex) {
+  hex = hex.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); };
+  return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+}
+function applyCustomTheme(hex) {
+  const root = document.documentElement;
+  root.setAttribute('data-theme', 'custom');
+  const hsl = hexToHSL(hex);
+  const h = hsl.h, s = hsl.s;
+  const acc = hex;
+  const accSoft = hslToHex(h, Math.max(s - 10, 20), Math.min(hsl.l + 15, 85));
+  const acc2 = hslToHex((h + 30) % 360, Math.min(s + 10, 100), Math.min(hsl.l + 5, 80));
+  const g1 = hslToHex(h, Math.min(s + 5, 100), Math.max(hsl.l - 10, 25));
+  const g2 = hslToHex((h + 30) % 360, Math.min(s + 5, 100), Math.max(hsl.l - 5, 30));
+  const isDark = hsl.l < 60;
+  const bg = isDark ? hslToHex(h, Math.min(s, 40), 5) : hslToHex(h, Math.min(s, 15), 96);
+  const bg2 = isDark ? hslToHex(h, Math.min(s, 45), 8) : hslToHex(h, Math.min(s, 15), 100);
+  const bg3 = isDark ? hslToHex(h, Math.min(s, 50), 12) : hslToHex(h, Math.min(s, 12), 93);
+  const txt = isDark ? hslToHex(h, 30, 92) : hslToHex(h, 30, 15);
+  const mut = isDark ? hslToHex(h, 20, 68) : hslToHex(h, 15, 45);
+  const dim = isDark ? hslToHex(h, 15, 42) : hslToHex(h, 12, 65);
+  const glow = isDark ? 'rgba(' + parseInt(hex.substring(1, 3), 16) + ',' + parseInt(hex.substring(3, 5), 16) + ',' + parseInt(hex.substring(5, 7), 16) + ',.4)' : 'rgba(' + parseInt(hex.substring(1, 3), 16) + ',' + parseInt(hex.substring(3, 5), 16) + ',' + parseInt(hex.substring(5, 7), 16) + ',.3)';
+  const r = parseInt(hex.substring(1, 3), 16), g = parseInt(hex.substring(3, 5), 16), b = parseInt(hex.substring(5, 7), 16);
+  const haze = (hex, a) => 'rgba(' + parseInt(hex.substring(1, 3), 16) + ',' + parseInt(hex.substring(3, 5), 16) + ',' + parseInt(hex.substring(5, 7), 16) + ',' + a + ')';
+  root.style.setProperty('--c-bg', bg);
+  root.style.setProperty('--c-bg2', bg2);
+  root.style.setProperty('--c-bg3', bg3);
+  root.style.setProperty('--c-card', haze(acc, isDark ? '0.05' : '0.06'));
+  root.style.setProperty('--c-card2', haze(acc, isDark ? '0.1' : '0.08'));
+  root.style.setProperty('--c-line', haze(acc, isDark ? '0.14' : '0.12'));
+  root.style.setProperty('--c-line2', haze(acc, isDark ? '0.3' : '0.25'));
+  root.style.setProperty('--c-txt', txt);
+  root.style.setProperty('--c-mut', mut);
+  root.style.setProperty('--c-dim', dim);
+  root.style.setProperty('--c-acc', acc);
+  root.style.setProperty('--c-acc-soft', accSoft);
+  root.style.setProperty('--c-acc2', acc2);
+  root.style.setProperty('--c-g1', g1);
+  root.style.setProperty('--c-g2', g2);
+  root.style.setProperty('--c-glow', glow);
+  root.style.setProperty('--c-haze1', haze(g1, '0.22'));
+  root.style.setProperty('--c-haze2', haze(g2, '0.12'));
+  root.style.setProperty('--c-star', isDark ? '#fff' : hslToHex(h, Math.min(s, 30), 40));
+}
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
   localStorage.setItem('noti-theme', name);
   document.querySelectorAll('.tdot').forEach(d => d.classList.toggle('active', d.dataset.t === name));
+  if (name === 'custom') {
+    const saved = localStorage.getItem('noti-custom-color');
+    if (saved) applyCustomTheme(saved);
+  } else {
+    document.documentElement.querySelectorAll('[style*="--c-"]').forEach(el => {
+      ['--c-bg','--c-bg2','--c-bg3','--c-card','--c-card2','--c-line','--c-line2','--c-txt','--c-mut','--c-dim','--c-acc','--c-acc-soft','--c-acc2','--c-g1','--c-g2','--c-glow','--c-haze1','--c-haze2','--c-star'].forEach(v => el.style.removeProperty(v));
+    });
+  }
 }
 applyTheme(localStorage.getItem('noti-theme') || 'moon');
+if (localStorage.getItem('noti-theme') === 'custom' && localStorage.getItem('noti-custom-color')) {
+  applyCustomTheme(localStorage.getItem('noti-custom-color'));
+}
 ['themePicker', 'themePickerMobile'].forEach(id => {
   const p = $(id);
   if (p) p.addEventListener('click', e => {
     const b = e.target.closest('[data-t]');
-    if (b) applyTheme(b.dataset.t);
+    if (b) {
+      applyTheme(b.dataset.t);
+      if (b.dataset.t === 'custom') {
+        const panel = $('customColorPanel');
+        if (panel) {
+          if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            panel.classList.add('open');
+            requestAnimationFrame(() => {
+              panel.classList.remove('scale-95', 'opacity-0');
+              panel.classList.add('scale-100', 'opacity-100');
+            });
+          } else {
+            panel.classList.add('scale-95', 'opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('open'); }, 300);
+          }
+        }
+      }
+    }
   });
 });
+(function customColorPicker() {
+  const picker = $('customColorPicker');
+  const hex = $('customColorHex');
+  const apply = $('customApplyBtn');
+  const reset = $('customResetBtn');
+  if (!picker || !apply) return;
+  const saved = localStorage.getItem('noti-custom-color') || '#8b5cf6';
+  picker.value = saved;
+  if (hex) hex.textContent = saved;
+  picker.addEventListener('input', () => {
+    if (hex) hex.textContent = picker.value;
+    applyCustomTheme(picker.value);
+  });
+  apply.addEventListener('click', () => {
+    localStorage.setItem('noti-custom-color', picker.value);
+    localStorage.setItem('noti-theme', 'custom');
+    applyTheme('custom');
+  });
+  document.querySelectorAll('.custom-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const color = btn.dataset.color;
+      if (color) {
+        picker.value = color;
+        if (hex) hex.textContent = color;
+        applyCustomTheme(color);
+        localStorage.setItem('noti-custom-color', color);
+        localStorage.setItem('noti-theme', 'custom');
+        applyTheme('custom');
+      }
+    });
+  });
+  if (reset) {
+    reset.addEventListener('click', () => {
+      picker.value = '#8b5cf6';
+      if (hex) hex.textContent = '#8b5cf6';
+      localStorage.removeItem('noti-custom-color');
+      applyTheme('moon');
+    });
+  }
+  document.addEventListener('click', e => {
+    const panel = $('customColorPanel');
+    const btn = $('customThemeBtn');
+    if (!panel || !btn) return;
+    if (panel.classList.contains('hidden') && !panel.classList.contains('open')) return;
+    if (btn.contains(e.target) || btn === e.target) return;
+    if (panel.contains(e.target)) return;
+    // Close panel when clicking outside
+    panel.classList.add('scale-95', 'opacity-0');
+    panel.classList.remove('scale-100', 'opacity-100');
+    setTimeout(() => { panel.classList.add('hidden'); panel.classList.remove('open'); }, 300);
+  });
+})();
 
 /* ================= ŁADNE SCROLLOWANIE ================= */
 (function prettyScroll() {
@@ -1659,7 +2050,6 @@ applyTheme(localStorage.getItem('noti-theme') || 'moon');
     e.preventDefault();
     const y = id === 'top' ? 0 : target.getBoundingClientRect().top + window.scrollY - OFFSET;
     scrollToY(Math.max(0, y));
-    history.replaceState(null, '', '#' + id);
   });
 })();
 
@@ -1763,8 +2153,14 @@ applyScheduleToGrid();
     catImg: 'sleepingcat4.png', catSize: 150, catAnim: 'sleep',
     wishSectionOn: true, wishOpen: true, wishModeration: true, birthdayOnly: true, birthdayBlockOn: true,
     games: DEFAULT_SCHEDULE.map(s => ({ ...s })),
-    marquee: 'notimoon_ ✦ moonie family ✦ live na tiktoku ✦ minecraft builder ✦ roblox nights ✦ 14 czerwca 🎂 ✦ dc.gg/noti',
-    defaultCatImg: 'sleepingcat4.png'
+    marquee: 'notimoon_ ✦ moonie family ✦ live na tiktoku ✦ minecraft builder ✦ roblox nights ✦ 14 czerwca 🎂 ✦ dc.gg/notimoon',
+    defaultCatImg: 'sleepingcat4.png',
+    robloxStatus: 'W grze jestem jako notimoon (nick: robloxerkajulka) — od spokojnego Brookhaven po krzyki w Doors. Wyślij zaproszenie, może spotkamy się na serwerze!',
+    discordText: 'dołącz do społeczności ✦',
+    labelUptime: 'czas trwania streama',
+    labelGame: 'gra',
+    labelTitle: 'tytuł',
+    offlineText: 'offline'
   };
 
   function el(id) { return $(id); }
@@ -1944,6 +2340,10 @@ applyScheduleToGrid();
       });
       if (el('bizMail')) el('bizMail').textContent = edits.mail;
     }
+    if (edits.heroPhoto) {
+      const img = el('heroPhoto');
+      if (img) img.src = edits.heroPhoto;
+    }
   }
   function applyText() {
     if (edits.pageTitle) document.title = edits.pageTitle;
@@ -1958,6 +2358,16 @@ applyScheduleToGrid();
       const sub = el('heroSubtitle');
       if (sub) sub.innerHTML = edits.subtitle;
     }
+    if (edits.h1 && el('h1_txt')) el('h1_txt').innerHTML = edits.h1;
+    if (edits.h2 && el('h2_txt')) el('h2_txt').innerHTML = edits.h2;
+    if (edits.h3 && el('h3_txt')) el('h3_txt').innerHTML = edits.h3;
+    if (edits.h4 && el('h4_txt')) el('h4_txt').innerHTML = edits.h4;
+    if (edits.h5pre && el('wishTitle')) el('wishTitle').innerHTML = edits.h5pre;
+    if (edits.nav1 && el('navLnk1')) el('navLnk1').textContent = edits.nav1;
+    if (edits.nav2 && el('navLnk2')) el('navLnk2').textContent = edits.nav2;
+    if (edits.nav3 && el('navLnk3')) el('navLnk3').textContent = edits.nav3;
+    if (edits.nav4 && el('navLnk4')) el('navLnk4').textContent = edits.nav4;
+    if (edits.nav5 && el('navLnk5')) el('navLnk5').textContent = edits.nav5;
     if (edits.marquee) {
       const track = $('marqueeTrack');
       if (track) {
@@ -1965,6 +2375,23 @@ applyScheduleToGrid();
         track.innerHTML = parts.map(p => `<span>${p}</span><span class="t-acc">✦</span>`).join(' ') +
           ' ' + parts.map(p => `<span>${p}</span><span class="t-acc">✦</span>`).join(' ');
       }
+    }
+    if (edits.robloxStatus) {
+      const st = el('robloxStatus');
+      if (st) st.innerHTML = edits.robloxStatus;
+    }
+    if (edits.discordText) {
+      const dc = el('dcMembers');
+      if (dc && !dc.innerHTML.includes('●')) dc.textContent = edits.discordText;
+    }
+    if (edits.labelUptime && el('labelUptime')) {
+      el('labelUptime').textContent = edits.labelUptime;
+    }
+    if (edits.labelGame && el('labelGame')) {
+      el('labelGame').textContent = edits.labelGame;
+    }
+    if (edits.labelTitle && el('labelTitle')) {
+      el('labelTitle').textContent = edits.labelTitle;
     }
   }
   function applyGames() {
@@ -2043,6 +2470,12 @@ applyScheduleToGrid();
     el('admRobloxLink').value = edits.robloxLink || '';
     el('admNewPassword').value = '';
     el('admDefaultCatImg').value = edits.defaultCatImg || defaults.defaultCatImg;
+    el('admRobloxStatus').value = edits.robloxStatus || defaults.robloxStatus;
+    el('admDiscordText').value = edits.discordText || defaults.discordText;
+    el('admLabelUptime').value = edits.labelUptime || defaults.labelUptime;
+    el('admLabelGame').value = edits.labelGame || defaults.labelGame;
+    el('admLabelTitle').value = edits.labelTitle || defaults.labelTitle;
+    el('admOfflineText').value = edits.offlineText || defaults.offlineText;
     const bday = edits.bday || localStorage.getItem('noti-bday');
     if (bday && /^\d{2}-\d{2}$/.test(bday)) {
       const parts = bday.split('-');
@@ -2099,6 +2532,22 @@ applyScheduleToGrid();
     edits.discordLink = el('admDiscordLink').value.trim();
     edits.robloxLink = el('admRobloxLink').value.trim();
     edits.defaultCatImg = el('admDefaultCatImg').value.trim() || defaults.defaultCatImg;
+    edits.robloxStatus = el('admRobloxStatus').value.trim() || defaults.robloxStatus;
+    edits.discordText = el('admDiscordText').value.trim() || defaults.discordText;
+    edits.labelUptime = el('admLabelUptime').value.trim() || defaults.labelUptime;
+    edits.labelGame = el('admLabelGame').value.trim() || defaults.labelGame;
+    edits.labelTitle = el('admLabelTitle').value.trim() || defaults.labelTitle;
+    edits.offlineText = el('admOfflineText').value.trim() || defaults.offlineText;
+    edits.h1 = el('admH1').value.trim();
+    edits.h2 = el('admH2').value.trim();
+    edits.h3 = el('admH3').value.trim();
+    edits.h4 = el('admH4').value.trim();
+    edits.h5pre = el('admH5pre').value.trim();
+    edits.nav1 = el('admNav1').value.trim();
+    edits.nav2 = el('admNav2').value.trim();
+    edits.nav3 = el('admNav3').value.trim();
+    edits.nav4 = el('admNav4').value.trim();
+    edits.nav5 = el('admNav5').value.trim();
 
     /* Zapisz gry (dynamiczna liczba slotów) */
     const games = [];
