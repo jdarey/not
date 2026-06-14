@@ -14,7 +14,7 @@
 <meta property="og:url" content="https://notimoon.pl">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="notimoon_ ✦ streamerka">
-<meta name="twitter:description" content="Wieczorne live'y, minecraft buildy i moonie family 🌙">
+<meta name="twitter:description" content="Wieczorne live'y, minecraft buildy 🌙">
 <!-- Animated favicon via canvas (injected by JS) -->
 <link id="faviconLink" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🌙</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -893,12 +893,7 @@
 </div>
 <div id="cursorRing"></div>
 
-<!-- ===== AMBIENT AUDIO BUTTON ===== -->
-<button id="ambientBtn" title="ambient lo-fi (wł/wył)">🎵</button>
-<!-- Hidden ambient audio — YouTube iframe -->
-<div id="ambientContainer" style="position:fixed;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0">
-  <iframe id="ambientFrame" width="1" height="1" src="" frameborder="0" allow="autoplay" title="ambient"></iframe>
-</div>
+
 
 <!-- ===== EASTER EGG OVERLAY ===== -->
 <div id="easterEggOverlay">
@@ -1045,10 +1040,10 @@
           <p class="admin-section-title">🏷️ nagłówki sekcji</p>
           <h2 class="admin-section-head">Tytuły sekcji na stronie</h2>
           <div class="admin-grid-2">
-            <div class="admin-field"><label>01_live tytuł</label><input id="admH1" type="text" placeholder="czy noti streamuje?"></div>
-            <div class="admin-field"><label>02_plan tytuł</label><input id="admH2" type="text" placeholder="kiedy gramy?"></div>
-            <div class="admin-field"><label>03_gry tytuł</label><input id="admH3" type="text" placeholder="mój świat"></div>
-            <div class="admin-field"><label>04_sociale tytuł</label><input id="admH4" type="text" placeholder="znajdziesz mnie tutaj"></div>
+            <div class="admin-field"><label>live tytuł</label><input id="admH1" type="text" placeholder="czy noti streamuje?"></div>
+            <div class="admin-field"><label>plan tytuł</label><input id="admH2" type="text" placeholder="Kiedy się widzimy?"></div>
+            <div class="admin-field"><label>gry tytuł</label><input id="admH3" type="text" placeholder="mój świat"></div>
+            <div class="admin-field"><label>sociale tytuł</label><input id="admH4" type="text" placeholder="znajdziesz mnie tutaj"></div>
           </div>
           <div class="admin-field"><label>05_życzenia tytuł (przed "życzeń")</label><input id="admH5pre" type="text" placeholder="ściana"><p class="hint">Tekst przed "życzeń" w nagłówku</p></div>
           <div class="admin-field"><label>Nav link 01 (live)</label><input id="admNav1" type="text" placeholder="live"></div>
@@ -1277,7 +1272,8 @@
         </h1>
         <p class="label mb-5 flex items-center flex-wrap gap-x-2 gap-y-1" id="heroSubtitle">streamerka · <span class="mc-font text-[.72rem] normal-case tracking-normal opacity-75" style="color: var(--acc-soft); text-shadow: 1px 1px 0 rgba(0,0,0,.3);">minecraft builder</span> · robloxerka</p>
         <p class="t-mut font-medium leading-relaxed mb-8 max-w-md" id="editHeroBio">
-          Wieczorne live'y na TikToku, restreamy na Twitchu, budowle w Minecrafcie i chaos w Robloxie. Wpadnij — zostajesz na dłużej.
+
+          Hej! Jestem Julka 🌙 Streamuję głównie wieczorami, gram w Minecrafta i Robloxa, czasem tworzę coś kreatywnego, a na live rozmawiamy i dobrze się bawimy.
         </p>
         <div class="flex flex-wrap gap-3">
           <a href="https://www.tiktok.com/@notimoon_/live" target="_blank" class="btn-main rounded-xl px-7 py-3.5 text-sm">✦ oglądaj live</a>
@@ -1357,7 +1353,7 @@
 <section id="live" class="relative z-10 py-16 sm:py-20 px-3 sm:px-4">
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
-      <span class="snum">01_live</span>
+      <span class="snum">live</span>
       <h2 id="h1_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">czy noti <span class="grad-txt">streamuje?</span></h2>
       <div class="sline"></div>
     </div>
@@ -1415,7 +1411,7 @@
 <section id="plan" class="relative z-10 py-16 sm:py-20 px-3 sm:px-4">
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
-      <span class="snum">02_plan</span>
+      <span class="snum">plan</span>
       <h2 id="h2_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">kiedy <span class="grad-txt">gramy?</span></h2>
       <div class="sline"></div>
     </div>
@@ -1459,7 +1455,7 @@
 <section id="games" class="relative z-10 py-16 sm:py-20 px-3 sm:px-4">
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
-      <span class="snum">03_gry</span>
+      <span class="snum">gry</span>
       <h2 id="h3_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">mój <span class="grad-txt">świat</span></h2>
       <div class="sline"></div>
     </div>
@@ -1479,7 +1475,7 @@
           </div>
         </div>
         <div class="text-center sm:text-left min-w-0">
-          <p class="label label-v mb-2">roblox · postać pobrana z api</p>
+          <p class="label label-v mb-2">roblox</p>
           <h3 class="disp text-lg sm:text-xl font-600 mb-3">tu zaczyna się każdy stream</h3>
           <p id="robloxStatus" class="text-sm font-medium leading-relaxed mb-5 t-mut">łączę z Robloxem…</p>
           <a id="robloxProfileLink" href="https://www.roblox.com/users/692427061/profile" target="_blank" class="btn-line rounded-xl px-6 py-3 text-sm inline-block">zobacz profil →</a>
@@ -1491,13 +1487,12 @@
           <p class="label label-v">minecraft · zlecenia</p>
           <span class="text-2xl">⛏️</span>
         </div>
-        <h3 class="disp text-lg font-600 mt-2 mb-1.5">buduję w minecrafcie<br><span class="grad-txt">— płatne współprace.</span></h3>
-        <p class="mc-font mc-splash text-[.66rem] self-start my-2.5" id="mcSplash">Also try building!</p>
-        <p class="text-sm font-medium leading-relaxed t-mut mb-5" id="editMcDesc">Spawny, mapy, lobby i custom buildy — nastawiona stricte na płatne współprace. Profesjonalnie, z dbałością o każdy detal.</p>
+        <h3 class="disp text-lg font-600 mt-2 mb-1.5">buduję w minecrafcie<br><span class="grad-txt">— wspólprace.</span></h3>
+        <p class="text-sm font-medium leading-relaxed t-mut mb-5" id="editMcDesc">Tworzę spawny, lobby, mapy i różne customowe budowle. Jeśli potrzebujesz czegoś wyjątkowego na swój serwer, daj znać — stworzymy coś fajnego razem. ✨</p>
         <div class="rounded-xl border p-4" style="background: var(--card); border-color: var(--line);">
           <div class="flex items-center justify-between mb-3">
             <p class="text-[.6rem] font-bold tracking-[.2em] uppercase t-dim">zakres usług</p>
-            <p class="mc-font text-[.56rem]" style="color: #6fcf4f;">● płatne współprace</p>
+            <p class="mc-font text-[.56rem]" style="color: #6fcf4f;">● współprace</p>
           </div>
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-3">
@@ -1522,22 +1517,22 @@
         <div class="flex items-center justify-between mb-auto">
           <p class="label label-v">na streamie</p><span class="text-2xl">🎬</span>
         </div>
-        <h3 class="disp text-sm font-600 mt-5 mb-2">chaos i śmiech</h3>
-        <p class="text-xs font-medium leading-relaxed t-mut">Roblox, krzyki, akcje z czatem i energia, której nie da się podrobić. Tu się dzieje.</p>
+        <h3 class="disp text-sm font-600 mt-5 mb-2">Dobra Zabawa</h3>
+        <p class="text-xs font-medium leading-relaxed t-mut">Luźne gierki i dobra atmosfera gramy, rozmawiamy i dobrze się bawimy</p>
       </div>
       <div class="reveal tile tile-h col-span-1 lg:col-span-4 p-6 flex flex-col" style="transition-delay:.16s">
         <div class="flex items-center justify-between mb-auto">
           <p class="label label-v">po streamie</p><span class="text-2xl">🌙</span>
         </div>
-        <h3 class="disp text-sm font-600 mt-5 mb-2">cisza i bloki</h3>
-        <p class="text-xs font-medium leading-relaxed t-mut">Świat zwalnia, a noti otwiera Minecrafta. Nocne budowanie to jej medytacja.</p>
+        <h3 class="disp text-sm font-600 mt-5 mb-2">Discord i chill</h3>
+        <p class="text-xs font-medium leading-relaxed t-mut">Siedzę na Discordzie, gadam z widzami albo odpoczywam i szykuje się na kolejny stream.</p>
       </div>
       <div class="reveal tile tile-h col-span-1 lg:col-span-4 p-6 flex flex-col" style="transition-delay:.2s">
         <div class="flex items-center justify-between mb-auto">
           <p class="label label-v">zawsze</p><span class="text-2xl">💜</span>
         </div>
-        <h3 class="disp text-sm font-600 mt-5 mb-2">moonie family</h3>
-        <p class="text-xs font-medium leading-relaxed t-mut">Na live czy poza nim — społeczność jest sercem tego wszystkiego. I rośnie każdego dnia.</p>
+        <h3 class="disp text-sm font-600 mt-5 mb-2">Nasza Społeczność</h3>
+        <p class="text-xs font-medium leading-relaxed t-mut">Tworzymy małą, przyjazną społeczność, gdzie każdy może się poczuć swobodnie i jest mile widziany</p>
       </div>
     </div>
   </div>
@@ -1547,7 +1542,7 @@
 <section id="socials" class="relative z-10 py-16 sm:py-20 px-3 sm:px-4">
   <div class="max-w-6xl mx-auto">
     <div class="reveal shead mb-8">
-      <span class="snum">04_sociale</span>
+      <span class="snum">sociale</span>
       <h2 id="h4_txt" class="disp text-xl sm:text-3xl md:text-4xl font-600">znajdziesz mnie <span class="grad-txt">tutaj</span></h2>
       <div class="sline"></div>
     </div>
@@ -1558,7 +1553,7 @@
           <span class="soc-arr text-lg t-dim">↗</span>
         </div>
         <div>
-          <h3 class="disp text-base font-600 mb-1">tiktok <span class="text-[.58rem] align-middle ml-1.5 bg-pink-500/15 text-pink-300 border border-pink-500/30 rounded-full px-2.5 py-0.5 font-bold tracking-widest uppercase">main</span></h3>
+          <h3 class="disp text-base font-600 mb-1">tiktok 
           <p class="text-xs font-semibold mb-2 t-mut">najwięcej live'ów · moonie family</p>
           <p class="text-xs font-bold text-pink-400">@notimoon_</p>
         </div>
@@ -1591,7 +1586,7 @@
           <span class="soc-arr text-lg t-dim shrink-0">↗</span>
         </div>
         <div>
-          <h3 class="disp text-base font-600 mb-1">discord — moonie family</h3>
+          <h3 class="disp text-base font-600 mb-1">discord</h3>
           <p id="dcMembers" class="text-xs font-semibold mb-2 t-mut">noti czeka na serwerze · dołącz do nas</p>
           <p class="text-xs font-bold text-indigo-400">dc.gg/notimoon</p>
         </div>
@@ -1608,7 +1603,7 @@
       <p class="text-sm t-mut">Ściana i formularz są nadal widoczne, ale wysyłka może być wyłączona w panelu admina.</p>
     </div>
     <div class="reveal shead mb-8">
-      <span class="snum">05_18-stka</span>
+      <span class="snum">urodziny</span>
       <h2 class="disp text-xl sm:text-3xl md:text-4xl font-600"><span id="wishTitle">ściana</span> <span class="grad-txt">życzeń</span></h2>
       <div class="sline"></div>
     </div>
@@ -1628,7 +1623,6 @@
         </div>
         <button id="wishBtn" class="btn-main rounded-xl py-3.5 text-sm w-full mb-4">wyślij życzenia ✦</button>
         <div class="flex items-center justify-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot shrink-0"></span>
         </div>
       </div>
     </div>
@@ -1664,8 +1658,8 @@
       <div class="relative flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
         <div class="flex-1 text-center lg:text-left">
           <p class="label label-v mb-3">współpraca komercyjna</p>
-          <h2 class="disp text-xl sm:text-3xl font-600 leading-snug mb-3">współprace?<br><span class="grad-txt">tylko konkrety.</span></h2>
-          <p class="text-sm font-medium leading-relaxed t-mut max-w-md mx-auto lg:mx-0 mb-4" id="editCollabDesc">Promocje na live, kampanie z markami i <span class="t-soft t-soft font-bold">płatne zlecenia na buildy w Minecrafcie</span>. Wyłącznie współprace komercyjne — z wyceną i jasnymi warunkami.</p>
+          <h2 class="disp text-xl sm:text-3xl font-600 leading-snug mb-3">współprace?<br></h2>
+          <p class="text-sm font-medium leading-relaxed t-mut max-w-md mx-auto lg:mx-0 mb-4" id="editCollabDesc">Masz ciekawy pomysł na współpracę? <span class="t-soft t-soft font-bold">Napisz śmiało!</span> Chętnie podejmę się wspólnych projektów, akcji promocyjnych czy kreatywnych kampanii, jeśli pasują do mnie i mojej społeczności. 🌙</p>
           <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
             <span class="text-[.62rem] font-bold rounded-full border px-3 py-1.5 t-soft" style="border-color: var(--line2); background: var(--card);">📺 promocje na live</span>
             <span class="text-[.62rem] font-bold rounded-full border px-3 py-1.5 t-soft" style="border-color: var(--line2); background: var(--card);">🤝 kampanie z markami</span>
@@ -2155,7 +2149,7 @@ applyScheduleToGrid();
     games: DEFAULT_SCHEDULE.map(s => ({ ...s })),
     marquee: 'notimoon_ ✦ moonie family ✦ live na tiktoku ✦ minecraft builder ✦ roblox nights ✦ 14 czerwca 🎂 ✦ dc.gg/notimoon',
     defaultCatImg: 'sleepingcat4.png',
-    robloxStatus: 'W grze jestem jako notimoon (nick: robloxerkajulka) — od spokojnego Brookhaven po krzyki w Doors. Wyślij zaproszenie, może spotkamy się na serwerze!',
+    robloxStatus: 'W grze jestem jako notimoon (nick: robloxerkajulka) — spędzam tu czas z widzami, gramy razem i robimy fajny vibe na serwerze 🤍',
     discordText: 'dołącz do społeczności ✦',
     labelUptime: 'czas trwania streama',
     labelGame: 'gra',
@@ -2262,13 +2256,16 @@ applyScheduleToGrid();
   }
 
   /* ===== CAT SPEECH BUBBLE MESSAGES ===== */
-  const CAT_MESSAGES = [
-    'mruczuś~ 💤', 'niaaau~ 🌙', 'mrucz mrucz 😻', 'hladaaaa…',
-    'kocham księżyc 🌙', 'jeszcze pięć minutek…', 'nie przeszkadzaj 😾',
-    'uuuu księżyc! ✦', 'mrrrrr~ 💜', 'łapie promienie 🌟',
-    'nyaa~ 🐱', 'zasypiam… zzZ', 'to mój księżyc!', 'gluten?? 😼',
-    'mam cię! 🐾', 'kocham noti! ✦', 'kocie sprawy…', 'mruczki! 💕'
-  ];
+const CAT_MESSAGES = [
+  '…', 'zzz', '…zzz',
+  'mrr…', 'miau…',
+  'śpię…','nie… teraz…',
+  'jeszcze… śpię',
+  'mmm…', '…mrr',
+  'zzz…', '…',
+  'nie ruszaj…', 'śpię tu…',
+  '…miau'
+];
 
   /* ===== APPLY FUNCTIONS ===== */
   /* Kliknięcie w kota — tylko dymek, bez animacji kota */
@@ -3041,7 +3038,7 @@ const ROBLOX_ID = 692427061, ROBLOX_DISPLAY = 'notimoon';
 function loadRoblox() {
   const st = $('robloxStatus');
   $('robloxProfileLink').href = `https://www.roblox.com/users/${ROBLOX_ID}/profile`;
-  st.innerHTML = `W grze jestem jako <span class="t-soft font-bold">${ROBLOX_DISPLAY}</span> (nick: <span class="mono">robloxerkajulka</span>) — od spokojnego Brookhaven po krzyki w Doors. Wyślij zaproszenie, może spotkamy się na serwerze!`;
+  st.innerHTML = `W grze jestem jako <span class="t-soft font-bold">${ROBLOX_DISPLAY}</span> (nick: <span class="mono">robloxerkajulka</span>) — spędzam tu czas z widzami, gramy razem i robimy sobie fajny vibe na serwerze 🤍`;
   const img = $('robloxFullBody');
   const direct = [
     `https://www.roblox.com/avatar-thumbnail/image?userId=${ROBLOX_ID}&width=720&height=720&format=png`,
@@ -3056,24 +3053,13 @@ loadRoblox();
 setInterval(loadRoblox, 600000);
 
 /* ================= MC SPLASH ================= */
-(function mcSplash() {
-  const el = $('mcSplash');
-  if (!el) return;
-  const splashes = ['Also try building!','100% moonie made!','Blok po bloku!','Now with more detale!','Creative mode forever!','Sciany to sztuka!','Better than Herobrine!','Po polnocy najlepiej!','14 czerwca! 🎂','notimoon was here'];
-  let i = Math.floor(Math.random() * splashes.length);
-  setInterval(() => { el.style.transition = 'opacity .4s ease'; el.style.opacity = '0'; setTimeout(() => { el.textContent = splashes[++i % splashes.length]; el.style.opacity = '1'; }, 420); }, 5000);
-})();
+
 
 /* ================= ŚCIANA ŻYCZEŃ ================= */
 const WISH_DB_KEY = 'notimoon-bday-wishes-v2';
 const WISH_URL = 'https://textdb.online/' + WISH_DB_KEY;
 const WISH_UPDATE_URL = 'https://textdb.online/update/';
 const localKey = 'noti-wishes-backup';
-const wishDefaults = [
-  { n: 'moonie family', t: 'Sto lat, nasza kochana noti! Niech ten rok przyniesie Ci same sukcesy i tysiace nowych mooniesow! 🌙', ts: 1, state: 'approved' },
-  { n: 'twoj czat', t: 'Najlepszej streamerki zyczymy najlepszych live\'ów! Dziekujemy, ze jestes! ✦', ts: 2, state: 'approved' },
-  { n: 'ktoś, kto bardzo cię lubi', t: 'Ta strona to prezent dla Ciebie. Siegaj po marzenia — masz przeciez ksiezyc w nicku. Sto lat! 🎂', ts: 3, state: 'approved' }
-];
 const state = window.__notiWishState = window.__notiWishState || { approved: [], pending: [], rejected: [], config: { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true } };
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
 function normalizeWishState(raw) {
