@@ -1971,6 +1971,9 @@ window.addEventListener('error', e => {
 
 /* ================= MUZYKA W TLE (YouTube iframe API + oEmbed) ================= */
 var MUSIC_PLAYING = false;
+/* DOMYŚLNY UTWÓR — zmień ten ID aby zmienić muzykę dla WSZYSTKICH odwiedzających */
+var DEFAULT_MUSIC_YT_ID = 'jfKfPfyJRdk';
+var DEFAULT_MUSIC_LABEL = 'lofi hip hop radio';
 function getYouTubeId(url) {
   if (!url) return '';
   url = url.trim();
@@ -2017,9 +2020,10 @@ function stopMusic() {
 function loadMusicSettings() {
   let edits = {};
   try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+  /* Jeśli admin ustawił URL, użyj go. W przeciwnym razie użyj domyślnego. */
   const url = edits.musicUrl || '';
-  const label = edits.musicLabel || '';
-  const mid = getYouTubeId(url);
+  const label = edits.musicLabel || DEFAULT_MUSIC_LABEL;
+  const mid = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
   const preview = $('admMusicPreview');
   if (preview) preview.textContent = mid ? (label || '🎵 piosenka ustawiona') : '— brak piosenki';
 }
@@ -2030,11 +2034,11 @@ function loadMusicSettings() {
     if (MUSIC_PLAYING) { stopMusic(); return; }
     let edits = {};
     try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+    /* Użyj ustawień admina lub domyślnego utworu */
     const url = edits.musicUrl || '';
-    const label = edits.musicLabel || '';
-    const mid = getYouTubeId(url);
-    if (mid) { startMusic(mid, label); }
-    else { alert('Brak ustawionej muzyki! Otwórz panel admina (5× kliknij księżyc w footerze), przejdź do "Muzyka w tle" i wklej link YouTube.'); }
+    const label = edits.musicLabel || DEFAULT_MUSIC_LABEL;
+    const mid = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+    startMusic(mid, label);
   });
   loadMusicSettings();
 })();
