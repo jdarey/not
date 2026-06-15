@@ -522,7 +522,7 @@
   #starCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
   /* ===== AMBIENT AUDIO BUTTON ===== */
-  #ambientBtn {
+  #musicBtn {
     position: fixed; left: 18px; bottom: 18px; z-index: 90;
     width: 44px; height: 44px; border-radius: 9999px;
     display: flex; align-items: center; justify-content: center;
@@ -531,9 +531,10 @@
     font-size: 1.1rem; cursor: pointer;
     transition: box-shadow .4s ease, transform .3s ease, background .3s ease;
   }
-  #ambientBtn:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
-  #ambientBtn.playing { background: color-mix(in srgb, var(--acc) 18%, var(--card2)); border-color: var(--acc); animation: ambientPulse 2s ease-in-out infinite; }
-  @keyframes ambientPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
+  #musicBtn:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
+  #musicBtn.playing { background: color-mix(in srgb, var(--acc) 18%, var(--card2)); border-color: var(--acc); animation: musicPulse 2s ease-in-out infinite; }
+  @keyframes musicPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
+  #musicFrame { position: absolute; width: 0; height: 0; border: none; visibility: hidden; }
 
   /* ===== FLOATING THEME PICKER (for all users, local) ===== */
   #themeToggle {
@@ -978,6 +979,10 @@
   </div>
 </div>
 
+<!-- ===== MUZYKA W TLE (hidden iframe) ===== -->
+<iframe id="musicFrame"></iframe>
+<button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
+
 <!-- ===== EASTER EGG OVERLAY ===== -->
 <div id="easterEggOverlay">
   <div style="font-size:4rem;animation:moonGlowPulse 2s ease-in-out infinite">🌙</div>
@@ -1010,6 +1015,7 @@
       <button class="admin-sb-btn" data-section="sec-wishes"><span class="sb-icon">💬</span>Życzenia</button>
       <button class="admin-sb-btn" data-section="sec-links"><span class="sb-icon">🔗</span>Linki</button>
       <button class="admin-sb-btn" data-section="sec-settings"><span class="sb-icon">🔒</span>Ustawienia</button>
+      <button class="admin-sb-btn" data-section="sec-music"><span class="sb-icon">🎵</span>Muzyka w tle</button>
       <button class="admin-sb-btn" data-section="sec-theme"><span class="sb-icon">🎨</span>Motyw globalny</button>
       <div class="admin-sidebar-foot">
         <div class="admin-sb-btn" style="opacity:.6;font-size:.65rem;cursor:default;justify-content:center">
@@ -1262,6 +1268,29 @@
           <div style="margin-top:.5rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:16px;background:var(--card)">
             <p style="font-size:.68rem;font-weight:700;color:var(--mut);margin-bottom:.2rem">🔐 Zapamiętaj hasło!</p>
             <p style="font-size:.6rem;color:var(--dim);font-weight:600">Hasło jest przechowywane lokalnie w przeglądarce. Reset panelu przywraca domyślne "noti123".</p>
+          </div>
+        </div>
+
+        <!-- SEKCJA: MUZYKA W TLE -->
+        <div id="sec-music" class="admin-section">
+          <p class="admin-section-title">🎵 muzyka w tle</p>
+          <h2 class="admin-section-head">Piosenka dla moonie family</h2>
+          <div class="admin-preview-panel" style="margin-bottom:.8rem">
+            <p class="pp-label">teraźniejsza piosenka</p>
+            <p class="pp-text" id="admMusicPreview">—</p>
+          </div>
+          <div class="admin-field">
+            <label>Link do YouTube</label>
+            <input id="admMusicUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
+            <p class="hint">Wklej link do YT. Strona sama wyciągnie ID i puści w tle z autoodtwarzaniem.</p>
+          </div>
+          <div class="admin-field">
+            <label>Nazwa piosenki (opcjonalnie)</label>
+            <input id="admMusicLabel" type="text" placeholder="lofi hip hop radio">
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <button id="admMusicTest" class="btn-main" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">▶ przetestuj</button>
+            <button id="admMusicStop" class="btn-line" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">⏹ zatrzymaj</button>
           </div>
         </div>
 
@@ -1936,27 +1965,54 @@ window.addEventListener('error', e => {
   }
 })();
 
-/* ================= AMBIENT AUDIO ================= */
-(function ambientAudio() {
-  const btn = $('ambientBtn');
-  const frame = $('ambientFrame');
+/* ================= MUZYKA W TLE (YT) ================= */
+var MUSIC_PLAYING = false;
+function getYouTubeId(url) {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+function startMusic(videoId, label) {
+  const frame = $('musicFrame');
+  const btn = $('musicBtn');
+  if (!frame || !videoId) return;
+  frame.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&loop=1&playlist=' + videoId + '&enablejsapi=1';
+  MUSIC_PLAYING = true;
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⏸'; btn.title = '⏸ ' + (label || 'muzyka w tle'); }
+}
+function stopMusic() {
+  const frame = $('musicFrame');
+  const btn = $('musicBtn');
+  if (frame) frame.src = '';
+  MUSIC_PLAYING = false;
+  if (btn) { btn.classList.remove('playing'); btn.textContent = '🎵'; btn.title = '🎵 muzyka w tle'; }
+}
+function loadMusicSettings() {
+  let edits = {};
+  try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+  const url = edits.musicUrl || '';
+  const label = edits.musicLabel || '';
+  const id = getYouTubeId(url);
+  const preview = $('admMusicPreview');
+  if (preview) preview.textContent = id ? (label || '🎵 piosenka ustawiona') : '— brak piosenki';
+  if (id) startMusic(id, label);
+}
+(function musicInit() {
+  const btn = $('musicBtn');
+  const frame = $('musicFrame');
   if (!btn || !frame) return;
-  
-  const lofiUrl = 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk&enablejsapi=1';
-  let isPlaying = false;
-  
   btn.addEventListener('click', () => {
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-      frame.src = lofiUrl;
-      btn.classList.add('playing');
-      btn.textContent = '⏸';
-    } else {
-      frame.src = '';
-      btn.classList.remove('playing');
-      btn.textContent = '🎵';
+    if (MUSIC_PLAYING) { stopMusic(); }
+    else {
+      let edits = {};
+      try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+      const url = edits.musicUrl || '';
+      const label = edits.musicLabel || '';
+      const id = getYouTubeId(url);
+      if (id) startMusic(id, label);
     }
   });
+  loadMusicSettings();
 })();
 
 /* ================= MOTYWY ================= */
@@ -2623,7 +2679,8 @@ const CAT_MESSAGES = [
     el('admNav2').value = edits.nav2 || '';
     el('admNav3').value = edits.nav3 || '';
     el('admNav4').value = edits.nav4 || '';
-    el('admNav5').value = edits.nav5 || '';
+    el('admMusicUrl').value = edits.musicUrl || '';
+    el('admMusicLabel').value = edits.musicLabel || '';
   }
 
   function updatePreviewText() {
@@ -2679,6 +2736,17 @@ const CAT_MESSAGES = [
     edits.nav3 = el('admNav3').value.trim();
     edits.nav4 = el('admNav4').value.trim();
     edits.nav5 = el('admNav5').value.trim();
+
+    /* Muzyka */
+    edits.musicUrl = el('admMusicUrl').value.trim();
+    edits.musicLabel = el('admMusicLabel').value.trim();
+    /* Po zapisie odśwież muzykę */
+    const mid = getYouTubeId(edits.musicUrl);
+    const preview = $('admMusicPreview');
+    if (preview) preview.textContent = mid ? (edits.musicLabel || '🎵 piosenka ustawiona') : '— brak piosenki';
+    if (mid && MUSIC_PLAYING) { stopMusic(); setTimeout(() => startMusic(mid, edits.musicLabel), 100); }
+    else if (mid && !MUSIC_PLAYING) { startMusic(mid, edits.musicLabel); }
+    else if (!mid) { stopMusic(); }
 
     /* Zapisz gry (dynamiczna liczba slotów) */
     const games = [];
