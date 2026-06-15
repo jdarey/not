@@ -534,7 +534,7 @@
   #musicBtn:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
   #musicBtn.playing { background: color-mix(in srgb, var(--acc) 18%, var(--card2)); border-color: var(--acc); animation: musicPulse 2s ease-in-out infinite; }
   @keyframes musicPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
-  #musicFrame { position: absolute; width: 0; height: 0; border: none; visibility: hidden; }
+  #musicFrame { position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; border: none; opacity: 0; pointer-events: none; }
 
   /* ===== FLOATING THEME PICKER (for all users, local) ===== */
   #themeToggle {
@@ -1995,24 +1995,39 @@ function loadMusicSettings() {
   const id = getYouTubeId(url);
   const preview = $('admMusicPreview');
   if (preview) preview.textContent = id ? (label || '🎵 piosenka ustawiona') : '— brak piosenki';
-  if (id) startMusic(id, label);
+  const btn = $('musicBtn');
+  if (btn) btn.dataset.musicId = id || '';
 }
 (function musicInit() {
   const btn = $('musicBtn');
   const frame = $('musicFrame');
   if (!btn || !frame) return;
   btn.addEventListener('click', () => {
-    if (MUSIC_PLAYING) { stopMusic(); }
-    else {
-      let edits = {};
-      try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
-      const url = edits.musicUrl || '';
-      const label = edits.musicLabel || '';
-      const id = getYouTubeId(url);
-      if (id) startMusic(id, label);
-    }
+    if (MUSIC_PLAYING) { stopMusic(); return; }
+    let edits = {};
+    try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+    const url = edits.musicUrl || '';
+    const label = edits.musicLabel || '';
+    const id = getYouTubeId(url);
+    if (id) { startMusic(id, label); }
+    else { alert('Brak ustawionej muzyki! Otwórz panel admina (5× kliknij księżyc w footerze), przejdź do "Muzyka w tle" i wklej link YouTube.'); }
   });
   loadMusicSettings();
+  /* Spróbuj autoodtwarzania przy pierwszej interakcji użytkownika */
+  function tryAutoPlay() {
+    let edits = {};
+    try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
+    const url = edits.musicUrl || '';
+    const label = edits.musicLabel || '';
+    const id = getYouTubeId(url);
+    if (id && !MUSIC_PLAYING) startMusic(id, label);
+    document.removeEventListener('click', tryAutoPlay);
+    document.removeEventListener('touchstart', tryAutoPlay);
+    document.removeEventListener('keydown', tryAutoPlay);
+  }
+  document.addEventListener('click', tryAutoPlay, { once: true });
+  document.addEventListener('touchstart', tryAutoPlay, { once: true });
+  document.addEventListener('keydown', tryAutoPlay, { once: true });
 })();
 
 /* ================= MOTYWY ================= */
@@ -2895,6 +2910,16 @@ const CAT_MESSAGES = [
   };
     applyWishSection();
     applyGames();
+
+    /* ===== MUSIC TEST/STOP HANDLERS W PANELU ADMINA ===== */
+    el('admMusicTest')?.addEventListener('click', () => {
+      const url = el('admMusicUrl')?.value?.trim() || '';
+      const label = el('admMusicLabel')?.value?.trim() || '';
+      const id = getYouTubeId(url);
+      if (!id) { alert('Nieprawidłowy link YouTube!'); return; }
+      startMusic(id, label);
+    });
+    el('admMusicStop')?.addEventListener('click', () => { stopMusic(); });
 
     /* ===== GLOBAL THEME HANDLERS W PANELU ADMINA ===== */
     const admThemePresets = document.querySelectorAll('#admThemePresets .adm-theme-preset');
