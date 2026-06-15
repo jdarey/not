@@ -534,7 +534,7 @@
   #musicBtn:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
   #musicBtn.playing { background: color-mix(in srgb, var(--acc) 18%, var(--card2)); border-color: var(--acc); animation: musicPulse 2s ease-in-out infinite; }
   @keyframes musicPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
-  #musicFrame { position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; border: none; opacity: 0; pointer-events: none; }
+  #musicAudio { position: fixed; bottom: -9999px; left: -9999px; width: 1px; height: 1px; border: none; opacity: 0; pointer-events: none; }
 
   /* ===== FLOATING THEME PICKER (for all users, local) ===== */
   #themeToggle {
@@ -979,8 +979,8 @@
   </div>
 </div>
 
-<!-- ===== MUZYKA W TLE (hidden iframe) ===== -->
-<iframe id="musicFrame"></iframe>
+<!-- ===== MUZYKA W TLE (HTML5 Audio) ===== -->
+<audio id="musicAudio" loop></audio>
 <button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
 
 <!-- ===== EASTER EGG OVERLAY ===== -->
@@ -1280,13 +1280,22 @@
             <p class="pp-text" id="admMusicPreview">—</p>
           </div>
           <div class="admin-field">
-            <label>Link do YouTube</label>
-            <input id="admMusicUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
-            <p class="hint">Wklej link do YT. Strona sama wyciągnie ID i puści w tle z autoodtwarzaniem.</p>
+            <label>🎵 Wgraj plik MP3</label>
+            <input id="admMusicFile" type="file" accept="audio/*" style="padding:.5rem;font-size:.8rem">
+            <p class="hint">Wgraj plik MP3 lub inny format audio. Plik zostanie zapisany w pamięci przeglądarki.</p>
+          </div>
+          <div class="admin-field">
+            <label>Lub wklej link do pliku audio (MP3 URL)</label>
+            <input id="admMusicUrl" type="url" placeholder="https://example.com/music.mp3">
+            <p class="hint">Bezpośredni link do pliku MP3 (np. z Google Drive, Dropbox, własny serwer).</p>
           </div>
           <div class="admin-field">
             <label>Nazwa piosenki (opcjonalnie)</label>
             <input id="admMusicLabel" type="text" placeholder="lofi hip hop radio">
+          </div>
+          <div class="admin-field">
+            <label>Głośność: <span id="admVolVal">50</span>%</label>
+            <input type="range" id="admMusicVol" min="0" max="100" value="50" style="accent-color:var(--acc)">
           </div>
           <div style="display:flex;gap:.5rem;margin-top:.5rem">
             <button id="admMusicTest" class="btn-main" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">▶ przetestuj</button>
@@ -1965,25 +1974,39 @@ window.addEventListener('error', e => {
   }
 })();
 
-/* ================= MUZYKA W TLE (YT) ================= */
+/* ================= MUZYKA W TLE (HTML5 Audio) ================= */
 var MUSIC_PLAYING = false;
-function getYouTubeId(url) {
-  if (!url) return null;
-  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
-function startMusic(videoId, label) {
-  const frame = $('musicFrame');
+var _musicBlobUrl = null;
+
+function startMusic(src, label) {
+  const audio = $('musicAudio');
   const btn = $('musicBtn');
-  if (!frame || !videoId) return;
-  frame.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&loop=1&playlist=' + videoId + '&enablejsapi=1';
-  MUSIC_PLAYING = true;
-  if (btn) { btn.classList.add('playing'); btn.textContent = '⏸'; btn.title = '⏸ ' + (label || 'muzyka w tle'); }
+  if (!audio || !src) return;
+  const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
+  audio.src = src;
+  audio.volume = vol / 100;
+  audio.muted = false;
+  audio.play().then(() => {
+    MUSIC_PLAYING = true;
+    if (btn) { btn.classList.add('playing'); btn.textContent = '⏸'; btn.title = '⏸ ' + (label || 'muzyka w tle'); }
+  }).catch(e => {
+    console.warn('Muzyka - autoplay block, czekam na click:', e);
+    const retry = () => {
+      audio.play().then(() => {
+        MUSIC_PLAYING = true;
+        if (btn) { btn.classList.add('playing'); btn.textContent = '⏸'; btn.title = '⏸ ' + (label || 'muzyka w tle'); }
+      }).catch(() => {});
+      document.removeEventListener('click', retry);
+      document.removeEventListener('touchstart', retry);
+    };
+    document.addEventListener('click', retry, { once: true });
+    document.addEventListener('touchstart', retry, { once: true });
+  });
 }
 function stopMusic() {
-  const frame = $('musicFrame');
+  const audio = $('musicAudio');
   const btn = $('musicBtn');
-  if (frame) frame.src = '';
+  if (audio) { audio.pause(); audio.currentTime = 0; }
   MUSIC_PLAYING = false;
   if (btn) { btn.classList.remove('playing'); btn.textContent = '🎵'; btn.title = '🎵 muzyka w tle'; }
 }
@@ -1992,42 +2015,35 @@ function loadMusicSettings() {
   try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
   const url = edits.musicUrl || '';
   const label = edits.musicLabel || '';
-  const id = getYouTubeId(url);
+  const hasMusic = url || edits.musicFileData;
   const preview = $('admMusicPreview');
-  if (preview) preview.textContent = id ? (label || '🎵 piosenka ustawiona') : '— brak piosenki';
-  const btn = $('musicBtn');
-  if (btn) btn.dataset.musicId = id || '';
+  if (preview) preview.textContent = hasMusic ? (label || '🎵 piosenka ustawiona') : '— brak piosenki';
+  if (edits.musicFileData && edits.musicFileName) {
+    try {
+      const byteString = atob((edits.musicFileData.split(',')[1]) || edits.musicFileData);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: edits.musicFileType || 'audio/mpeg' });
+      if (_musicBlobUrl) URL.revokeObjectURL(_musicBlobUrl);
+      _musicBlobUrl = URL.createObjectURL(blob);
+    } catch(e) { console.warn('Nie udało się odtworzyć zapisanego pliku audio:', e); }
+  }
 }
 (function musicInit() {
   const btn = $('musicBtn');
-  const frame = $('musicFrame');
-  if (!btn || !frame) return;
+  const audio = $('musicAudio');
+  if (!btn || !audio) return;
   btn.addEventListener('click', () => {
     if (MUSIC_PLAYING) { stopMusic(); return; }
     let edits = {};
     try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
-    const url = edits.musicUrl || '';
+    let src = _musicBlobUrl || edits.musicUrl || '';
     const label = edits.musicLabel || '';
-    const id = getYouTubeId(url);
-    if (id) { startMusic(id, label); }
-    else { alert('Brak ustawionej muzyki! Otwórz panel admina (5× kliknij księżyc w footerze), przejdź do "Muzyka w tle" i wklej link YouTube.'); }
+    if (src) { startMusic(src, label); }
+    else { alert('Brak ustawionej muzyki! Otwórz panel admina (5× kliknij księżyc w footerze), przejdź do "Muzyka w tle" i wgraj plik MP3 lub wklej link.'); }
   });
   loadMusicSettings();
-  /* Spróbuj autoodtwarzania przy pierwszej interakcji użytkownika */
-  function tryAutoPlay() {
-    let edits = {};
-    try { edits = JSON.parse(localStorage.getItem('noti-edits') || '{}') || {}; } catch {}
-    const url = edits.musicUrl || '';
-    const label = edits.musicLabel || '';
-    const id = getYouTubeId(url);
-    if (id && !MUSIC_PLAYING) startMusic(id, label);
-    document.removeEventListener('click', tryAutoPlay);
-    document.removeEventListener('touchstart', tryAutoPlay);
-    document.removeEventListener('keydown', tryAutoPlay);
-  }
-  document.addEventListener('click', tryAutoPlay, { once: true });
-  document.addEventListener('touchstart', tryAutoPlay, { once: true });
-  document.addEventListener('keydown', tryAutoPlay, { once: true });
 })();
 
 /* ================= MOTYWY ================= */
@@ -2755,13 +2771,22 @@ const CAT_MESSAGES = [
     /* Muzyka */
     edits.musicUrl = el('admMusicUrl').value.trim();
     edits.musicLabel = el('admMusicLabel').value.trim();
-    /* Po zapisie odśwież muzykę */
-    const mid = getYouTubeId(edits.musicUrl);
+    /* Po zapisie odśwież podgląd */
+    const hasMusic = edits.musicUrl || edits.musicFileData;
     const preview = $('admMusicPreview');
-    if (preview) preview.textContent = mid ? (edits.musicLabel || '🎵 piosenka ustawiona') : '— brak piosenki';
-    if (mid && MUSIC_PLAYING) { stopMusic(); setTimeout(() => startMusic(mid, edits.musicLabel), 100); }
-    else if (mid && !MUSIC_PLAYING) { startMusic(mid, edits.musicLabel); }
-    else if (!mid) { stopMusic(); }
+    if (preview) preview.textContent = hasMusic ? (edits.musicLabel || '🎵 piosenka ustawiona') : '— brak piosenki';
+    /* Restore blob URL if file data exists */
+    if (edits.musicFileData) {
+      try {
+        const byteString = atob((edits.musicFileData.split(',')[1]) || edits.musicFileData);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+        const blob = new Blob([ab], { type: edits.musicFileType || 'audio/mpeg' });
+        if (_musicBlobUrl) URL.revokeObjectURL(_musicBlobUrl);
+        _musicBlobUrl = URL.createObjectURL(blob);
+      } catch(e) {}
+    }
 
     /* Zapisz gry (dynamiczna liczba slotów) */
     const games = [];
@@ -2912,12 +2937,50 @@ const CAT_MESSAGES = [
     applyGames();
 
     /* ===== MUSIC TEST/STOP HANDLERS W PANELU ADMINA ===== */
+    /* Volume slider — controls HTML5 Audio directly */
+    const volSlider = el('admMusicVol');
+    const volVal = el('admVolVal');
+    if (volSlider) {
+      volSlider.value = localStorage.getItem('noti-music-vol') || '50';
+      if (volVal) volVal.textContent = volSlider.value;
+      volSlider.addEventListener('input', () => {
+        const v = volSlider.value;
+        if (volVal) volVal.textContent = v;
+        localStorage.setItem('noti-music-vol', v);
+        const audio = $('musicAudio');
+        if (audio) audio.volume = parseInt(v) / 100;
+      });
+    }
+    /* File upload handler — reads MP3 and stores in edits */
+    el('admMusicFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const dataUrl = ev.target.result;
+        edits.musicFileData = dataUrl;
+        edits.musicFileName = file.name;
+        edits.musicFileType = file.type;
+        if (_musicBlobUrl) URL.revokeObjectURL(_musicBlobUrl);
+        const byteString = atob(dataUrl.split(',')[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+        const audioBlob = new Blob([ab], { type: file.type });
+        _musicBlobUrl = URL.createObjectURL(audioBlob);
+        const preview = el('admMusicPreview');
+        if (preview) preview.textContent = '🎵 ' + file.name;
+        localStorage.setItem(EDIT_KEY, JSON.stringify(edits));
+        alert('Plik "' + file.name + '" wgrany pomyślnie! Kliknij 🎵 na stronie aby odtworzyć.');
+      };
+      reader.readAsDataURL(file);
+    });
     el('admMusicTest')?.addEventListener('click', () => {
       const url = el('admMusicUrl')?.value?.trim() || '';
       const label = el('admMusicLabel')?.value?.trim() || '';
-      const id = getYouTubeId(url);
-      if (!id) { alert('Nieprawidłowy link YouTube!'); return; }
-      startMusic(id, label);
+      let src = _musicBlobUrl || url;
+      if (!src) { alert('Wgraj plik MP3 lub wklej link do pliku audio!'); return; }
+      startMusic(src, label);
     });
     el('admMusicStop')?.addEventListener('click', () => { stopMusic(); });
 
