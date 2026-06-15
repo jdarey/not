@@ -2263,17 +2263,6 @@ function applyScheduleToGrid() {
   }).join('');
   /* Re-observe new elements for reveal animation */
   if (typeof io !== 'undefined') grid.querySelectorAll('.reveal').forEach(el => { io.observe(el); });
-  /* Highlight today */
-  const today = new Date().getDay();
-  grid.querySelectorAll('[data-day]').forEach(card => {
-    if (+card.dataset.day === today) {
-      card.classList.add('tile-glow');
-      const badge = document.createElement('p');
-      badge.className = 'text-[.6rem] font-bold tracking-[.2em] uppercase mt-3 t-acc';
-      badge.textContent = '✦ dzisiaj!';
-      card.appendChild(badge);
-    }
-  });
 }
 applyScheduleToGrid();
 
@@ -3099,20 +3088,6 @@ function tickClock() {
 }
 tickClock();
 setInterval(tickClock, 1000);
-
-/* ================= PODŚWIETLENIE STREAMA ================= */
-(function highlightToday() {
-  const today = new Date().getDay();
-  document.querySelectorAll('#planGrid [data-day]').forEach(card => {
-    if (+card.dataset.day === today) {
-      card.classList.add('tile-glow');
-      const badge = document.createElement('p');
-      badge.className = 'text-[.6rem] font-bold tracking-[.2em] uppercase mt-3 t-acc';
-      badge.textContent = '✦ dzisiaj!';
-      card.appendChild(badge);
-    }
-  });
-})();
 
 /* ================= ZDJĘCIE PROFILOWE ================= */
 (function loadHeroPhoto() {
