@@ -2119,7 +2119,7 @@ function stopMusic() {
     setTimeout(() => {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
       if (volSlider) volSlider.classList.remove('show');
-    }, 1500);
+    }, 0);
   }
 
   btn.addEventListener('click', (e) => {
