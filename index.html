@@ -978,6 +978,67 @@
   var db = firebase.firestore();
 </script>
 </head>
+
+<!-- Wklej ten kod na samym dole strony, przed </body> -->
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    // 1. Pobieramy piosenkę z bazy danych Firestore (tak jak w Twoim panelu)
+    db.collection("config").doc("music").get().then((doc) => {
+      if (doc.exists) {
+        const musicData = doc.data();
+        let videoId = musicData.url || "";
+        
+        // Wyciągamy ID jeśli wklejono cały link z YouTube
+        if (videoId.includes("v=")) {
+          videoId = videoId.split("v=")[1].split("&")[0];
+        } else if (videoId.includes("youtu.be/")) {
+          videoId = videoId.split("youtu.be/")[1].split("?")[0];
+        }
+
+        if (videoId) {
+          const volume = musicData.volume !== undefined ? musicData.volume : 30;
+          const musicFrame = document.getElementById("musicFrame");
+          const musicBtn = document.getElementById("musicBtn");
+
+          // Funkcja, która fizycznie włącza muzykę w iframe YouTube
+          function startMusic() {
+            if (musicFrame.innerHTML === "") {
+              // Dodajemy autoplay=1 oraz mute=0 do linku iframe
+              musicFrame.innerHTML = `<iframe id="ytPlayer" width="1" height="1" src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&controls=0&loop=1&playlist=${videoId}" allow="autoplay"></iframe>`;
+              
+              if (musicBtn) {
+                musicBtn.classList.add("playing");
+              }
+
+              // Ustawianie głośności po załadowaniu odtwarzacza API YouTube
+              setTimeout(() => {
+                const iframe = document.getElementById("ytPlayer");
+                if (iframe && iframe.contentWindow) {
+                  iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [volume] }), "*");
+                }
+              }, 1500);
+            }
+          }
+
+          // 2. PRÓBA ODRAZU: Próbujemy odpalić od razu (jeśli przeglądarka pozwoli)
+          startMusic();
+
+          // 3. ROZWIĄZANIE PROBLEMU AUTOPLAY: Jeśli przeglądarka zablokowała, 
+          // muzyka odpali się przy pierwszym kliknięciu/dotknięciu ekranu przez widza
+          const playOnInteraction = () => {
+            startMusic();
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
+          };
+          
+          document.addEventListener('click', playOnInteraction);
+          document.addEventListener('touchstart', playOnInteraction);
+        }
+      }
+    });
+  });
+</script>
+
 <body class="relative">
 
 <!-- ===== STARFIELD CANVAS ===== -->
