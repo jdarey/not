@@ -16,6 +16,7 @@
 <meta name="twitter:title" content="notimoon_ ✦ streamerka">
 <meta name="twitter:description" content="Wieczorne live'y, minecraft buildy 🌙">
 <!-- Animated favicon via canvas (injected by JS) -->
+ <script src="https://www.youtube.com/iframe_api"></script>
 <link id="faviconLink" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🌙</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1017,7 +1018,7 @@
 </div>
 
 <!-- ===== MUZYKA W TLE (ukryty YouTube iframe + oEmbed) ===== -->
-<div id="musicFrame" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;border:none;overflow:hidden"></div>
+<div id="musicFrame"></div>
 <button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
 <div id="musicVolSlider">
   <span class="vol-label" id="musicVolLabel">30</span>
@@ -2046,6 +2047,15 @@ var DEFAULT_MUSIC_YT_ID = 'jfKfPfyJRdk';
 var DEFAULT_MUSIC_LABEL = 'lofi hip hop radio';
 var CURRENT_MUSIC_ID = DEFAULT_MUSIC_YT_ID;
 var CURRENT_MUSIC_LABEL = DEFAULT_MUSIC_LABEL;
+var ytPlayerInstance = null; // Przechowuje instancję odtwarzacza YouTube
+
+// Ładowanie oficjalnego API YouTube (jeśli jeszcze nie zostało załadowane)
+if (!window.YT) {
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
 
 function getYouTubeId(url) {
   if (!url) return '';
@@ -2065,22 +2075,43 @@ function startMusic(videoId, label) {
   const container = $('musicFrame');
   const btn = $('musicBtn');
   if (!container || !videoId) return;
-  const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
-  
-  /* Start with mute=1 to avoid loud burst, then set volume quietly */
-  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-  
-  setTimeout(() => {
-    try {
-      const iframe = $('musicYTPlayer');
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+
+  const vol = parseInt(localStorage.getItem('noti-music-vol') || '30');
+
+  // Czyszczenie starego kontenera, aby stworzyć czysty element pod API
+  container.innerHTML = '<div id="musicYTPlayer"></div>';
+
+  // Tworzymy odtwarzacz za pomocą oficjalnego API YT
+  ytPlayerInstance = new YT.Player('musicYTPlayer', {
+    height: '113',
+    width: '200',
+    videoId: videoId,
+    playerVars: {
+      'autoplay': 1,
+      'loop': 1,
+      'playlist': videoId,
+      'controls': 0,
+      'disablekb': 1,
+      'fs': 0,
+      'rel': 0,
+      'showinfo': 0
+    },
+    events: {
+      'onReady': function(event) {
+        // KLUCZ: Najpierw ustawiamy głośność, potem odbezpieczamy dźwięk
+        event.target.setVolume(vol);
+        event.target.unMute();
+        event.target.playVideo();
+      },
+      'onStateChange': function(event) {
+        // Zabezpieczenie pętli (loop) dla pojedynczego wideo
+        if (event.data === YT.PlayerState.ENDED) {
+          event.target.playVideo();
+        }
       }
-    } catch {}
-  }, 2000);
-  
+    }
+  });
+
   MUSIC_PLAYING = true;
   if (btn) {
     btn.classList.add('playing');
@@ -2092,7 +2123,13 @@ function startMusic(videoId, label) {
 function stopMusic() {
   const container = $('musicFrame');
   const btn = $('musicBtn');
+  
+  if (ytPlayerInstance && typeof ytPlayerInstance.destroy === 'function') {
+    ytPlayerInstance.destroy();
+    ytPlayerInstance = null;
+  }
   if (container) container.innerHTML = '';
+  
   MUSIC_PLAYING = false;
   if (btn) {
     btn.classList.remove('playing');
@@ -2109,17 +2146,22 @@ function stopMusic() {
   const volLabel = $('musicVolLabel');
   if (!btn) return;
 
-  // Init volume from localStorage (default 30)
+  // Init volume z localStorage (poprawione domyślnie na 30 zgodnie z Twoim komentarzem)
   const savedVol = localStorage.getItem('noti-music-vol') || '30';
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Auto-start music quietly on page load
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    setTimeout(() => {
+  // Czekamy na załadowanie API YouTube zanim odpalimy muzykę na start
+  window.onYouTubeIframeAPIReady = function() {
+    if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
       if (volSlider) volSlider.classList.remove('show');
-    }, 1500);
+    }
+  };
+
+  // Jeśli API załadowało się szybciej niż wykonał się ten kod:
+  if (window.YT && window.YT.Player && !MUSIC_PLAYING && CURRENT_MUSIC_ID) {
+    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
   }
 
   btn.addEventListener('click', (e) => {
@@ -2133,48 +2175,45 @@ function stopMusic() {
     }
   });
 
-  // Close volume slider on outside click
   document.addEventListener('click', (e) => {
     if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
       volSlider.classList.remove('show');
     }
   });
 
-  // Volume slider change
   if (volRange) {
     volRange.addEventListener('input', () => {
       const v = parseInt(volRange.value);
       if (volLabel) volLabel.textContent = v;
       localStorage.setItem('noti-music-vol', v);
-      if (MUSIC_PLAYING) {
-        try {
-          const iframe = $('musicYTPlayer');
-          if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [v] }), '*');
-          }
-        } catch {}
+      
+      // Natychmiastowa zmiana głośności przez instancję API
+      if (MUSIC_PLAYING && ytPlayerInstance && typeof ytPlayerInstance.setVolume === 'function') {
+        ytPlayerInstance.setVolume(v);
       }
     });
   }
 
-  // Pobieranie konfiguracji muzyki z kolekcji 'config', dokumentu 'music' z Firebase
   try {
     db.collection('config').doc('music').onSnapshot((doc) => {
       if (doc.exists) {
         const data = doc.data();
         const url = data.musicUrl || '';
         CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
-        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
         
-        // Aktualizacja podglądu w panelu admina (jeśli element istnieje na ekranie)
+        const newId = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+        
         const preview = $('admMusicPreview');
         if (preview) {
-          preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
+          preview.textContent = newId ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
         }
         
-        // Jeśli muzyka aktualnie gra, przełącz ją na nową automatycznie po zmianie przez admina
-        if (MUSIC_PLAYING) {
-          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+        // Zmień piosenkę TYLKO wtedy, gdy ID z Firebase faktycznie się zmieniło
+        if (newId !== CURRENT_MUSIC_ID) {
+          CURRENT_MUSIC_ID = newId;
+          if (MUSIC_PLAYING) {
+            startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+          }
         }
       }
     }, (error) => {
