@@ -547,14 +547,6 @@
     transition: opacity .25s ease, transform .25s cubic-bezier(.25,.8,.25,1);
   }
   #musicVolSlider.show { opacity: 1; pointer-events: auto; transform: none; }
-  
-  /* Show volume slider on hover over music button or slider */
-  #musicBtn:hover ~ #musicVolSlider,
-  #musicVolSlider:hover { 
-    opacity: 1 !important; 
-    pointer-events: auto !important; 
-    transform: none !important; 
-  }
   #musicVolSlider input[type="range"] {
     writing-mode: vertical-lr; direction: rtl;
     width: 8px; height: 80px; accent-color: var(--acc);
@@ -2121,49 +2113,29 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Auto-start music immediately on page load
+  // Auto-start music quietly on page load — immediately
   if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
     startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+    if (volSlider) volSlider.classList.remove('show');
   }
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (MUSIC_PLAYING) {
       stopMusic();
+      if (volSlider) volSlider.classList.remove('show');
     } else {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.add('show');
     }
   });
 
-  // Show volume slider on hover over button
-  btn.addEventListener('mouseenter', (e) => {
-    e.stopPropagation();
-    if (volSlider) volSlider.classList.add('show');
-  });
-
-  btn.addEventListener('mouseleave', (e) => {
-    if (volSlider && !volSlider.matches(':hover')) {
+  // Close volume slider on outside click
+  document.addEventListener('click', (e) => {
+    if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
       volSlider.classList.remove('show');
     }
   });
-
-  // Keep volume slider visible on hover over slider itself
-  if (volSlider) {
-    volSlider.addEventListener('mouseenter', () => {
-      volSlider.classList.add('show');
-    });
-
-    volSlider.addEventListener('mouseleave', () => {
-      volSlider.classList.remove('show');
-    });
-
-    // Close volume slider on outside click
-    document.addEventListener('click', (e) => {
-      if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
-        volSlider.classList.remove('show');
-      }
-    });
-  }
 
   // Volume slider change
   if (volRange) {
