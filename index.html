@@ -2114,6 +2114,14 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
+  // Auto-start music quietly on page load
+  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
+    setTimeout(() => {
+      startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.remove('show');
+    }, 1500);
+  }
+
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (MUSIC_PLAYING) {
