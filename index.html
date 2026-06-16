@@ -1017,6 +1017,7 @@
 </div>
 
 <!-- ===== MUZYKA W TLE (ukryty YouTube iframe + oEmbed) ===== -->
+<div id="musicFrame" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;border:none;overflow:hidden"></div>
 <button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
 <div id="musicVolSlider">
   <span class="vol-label" id="musicVolLabel">30</span>
@@ -2113,10 +2114,12 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Auto-start music quietly on page load — immediately
+  // Auto-start music quietly on page load
   if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-    if (volSlider) volSlider.classList.remove('show');
+    setTimeout(() => {
+      startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.remove('show');
+    }, 1500);
   }
 
   btn.addEventListener('click', (e) => {
