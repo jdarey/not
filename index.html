@@ -536,6 +536,27 @@
   @keyframes musicPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 30%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
   #musicFrame { position: fixed; bottom: -9999px; left: -9999px; width: 1px; height: 1px; border: none; opacity: 0; pointer-events: none; }
 
+  /* Volume slider for users */
+  #musicVolSlider {
+    position: fixed; left: 18px; bottom: 70px; z-index: 90;
+    width: 44px; height: 120px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+    background: rgba(10,1,23,.92); backdrop-filter: blur(14px);
+    border: 1px solid var(--line2); border-radius: 14px;
+    opacity: 0; pointer-events: none; transform: translateY(8px) scale(.9);
+    transition: opacity .25s ease, transform .25s cubic-bezier(.25,.8,.25,1);
+  }
+  #musicVolSlider.show { opacity: 1; pointer-events: auto; transform: none; }
+  #musicVolSlider input[type="range"] {
+    writing-mode: vertical-lr; direction: rtl;
+    width: 8px; height: 80px; accent-color: var(--acc);
+    cursor: pointer; background: transparent;
+  }
+  #musicVolSlider .vol-label {
+    font-size: .5rem; font-weight: 700; color: var(--dim); text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
   /* ===== FLOATING THEME PICKER (for all users, local) ===== */
   #themeToggle {
     position: fixed; left: 72px; bottom: 18px; z-index: 90;
@@ -998,6 +1019,10 @@
 <!-- ===== MUZYKA W TLE (ukryty YouTube iframe + oEmbed) ===== -->
 <div id="musicFrame" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;border:none;overflow:hidden"></div>
 <button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
+<div id="musicVolSlider">
+  <span class="vol-label" id="musicVolLabel">30</span>
+  <input type="range" id="musicVolRange" min="0" max="100" value="30">
+</div>
 
 <!-- ===== EASTER EGG OVERLAY ===== -->
 <div id="easterEggOverlay">
@@ -1305,8 +1330,8 @@
             <input id="admMusicLabel" type="text" placeholder="lofi hip hop radio">
           </div>
           <div class="admin-field">
-            <label>Głośność: <span id="admVolVal">50</span>%</label>
-            <input type="range" id="admMusicVol" min="0" max="100" value="50" style="accent-color:var(--acc)">
+            <label>Głośność: <span id="admVolVal">30</span>%</label>
+            <input type="range" id="admMusicVol" min="0" max="100" value="30" style="accent-color:var(--acc)">
           </div>
           <div style="display:flex;gap:.5rem;margin-top:.5rem">
             <button id="admMusicTest" class="btn-main" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">▶ przetestuj</button>
@@ -2042,7 +2067,8 @@ function startMusic(videoId, label) {
   if (!container || !videoId) return;
   const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
   
-  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=0" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  /* Start with mute=1 to avoid loud burst, then set volume quietly */
+  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   
   setTimeout(() => {
     try {
@@ -2053,7 +2079,7 @@ function startMusic(videoId, label) {
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
       }
     } catch {}
-  }, 1500);
+  }, 2000);
   
   MUSIC_PLAYING = true;
   if (btn) {
@@ -2078,15 +2104,50 @@ function stopMusic() {
 // Słuchanie zmian w Firebase na żywo dla KAŻDEGO użytkownika
 (function musicInit() {
   const btn = $('musicBtn');
+  const volSlider = $('musicVolSlider');
+  const volRange = $('musicVolRange');
+  const volLabel = $('musicVolLabel');
   if (!btn) return;
 
-  btn.addEventListener('click', () => {
+  // Init volume from localStorage (default 30)
+  const savedVol = localStorage.getItem('noti-music-vol') || '30';
+  if (volRange) volRange.value = savedVol;
+  if (volLabel) volLabel.textContent = savedVol;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (MUSIC_PLAYING) {
       stopMusic();
+      if (volSlider) volSlider.classList.remove('show');
     } else {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.add('show');
     }
   });
+
+  // Close volume slider on outside click
+  document.addEventListener('click', (e) => {
+    if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
+      volSlider.classList.remove('show');
+    }
+  });
+
+  // Volume slider change
+  if (volRange) {
+    volRange.addEventListener('input', () => {
+      const v = parseInt(volRange.value);
+      if (volLabel) volLabel.textContent = v;
+      localStorage.setItem('noti-music-vol', v);
+      if (MUSIC_PLAYING) {
+        try {
+          const iframe = $('musicYTPlayer');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [v] }), '*');
+          }
+        } catch {}
+      }
+    });
+  }
 
   // Pobieranie konfiguracji muzyki z kolekcji 'config', dokumentu 'music' z Firebase
   try {
