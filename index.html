@@ -2115,11 +2115,9 @@ function stopMusic() {
   if (volLabel) volLabel.textContent = savedVol;
 
   // Auto-start music quietly on page load
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    setTimeout(() => {
+  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {   
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
       if (volSlider) volSlider.classList.remove('show');
-    }, 0);
   }
 
   btn.addEventListener('click', (e) => {
