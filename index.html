@@ -2176,10 +2176,26 @@ function stopMusic() {
   if (volLabel) volLabel.textContent = savedVol;
 
   // Auto-start music quietly on page load
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {   
-      startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-      if (volSlider) volSlider.classList.remove('show');
+  // Bezpieczne i natychmiastowe uruchomienie muzyki przy pierwszej interakcji ze stroną
+function tryAutoPlay() {
+  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
+    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+    if (volSlider) volSlider.classList.remove('show');
+    
+    // Usuwamy listenery po pierwszym uruchomieniu, żeby nie odpalać funkcji w kółko
+    document.removeEventListener('click', tryAutoPlay);
+    document.removeEventListener('touchstart', tryAutoPlay);
+    document.removeEventListener('scroll', tryAutoPlay);
   }
+}
+
+// 1. Próbujemy odpalić od razu (zadziała, jeśli użytkownik np. odświeżył stronę i przeglądarka mu ufa)
+tryAutoPlay();
+
+// 2. Jeśli przeglądarka zablokowała, odpali się natychmiast przy najmniejszym ruchu użytkownika (kliknięcie, dotknięcie, scroll)
+document.addEventListener('click', tryAutoPlay);
+document.addEventListener('touchstart', tryAutoPlay);
+document.addEventListener('scroll', tryAutoPlay);
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
