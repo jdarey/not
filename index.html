@@ -940,6 +940,22 @@
     #scrollbarTop { height: 2px; }
   }
 </style>
+<!-- Firebase SDK (compat for v8-style syntax) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhVzkFbNkspF7bXTwkbLwIyLH-OK-Fr1M",
+    authDomain: "notimoon.firebaseapp.com",
+    projectId: "notimoon",
+    storageBucket: "notimoon.firebasestorage.app",
+    messagingSenderId: "818706359584",
+    appId: "1:818706359584:web:f608461223358cc74da345",
+    measurementId: "G-3HCB164XV9"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+</script>
 </head>
 <body class="relative">
 
@@ -1019,7 +1035,7 @@
       <button class="admin-sb-btn" data-section="sec-theme"><span class="sb-icon">🎨</span>Motyw globalny</button>
       <div class="admin-sidebar-foot">
         <div class="admin-sb-btn" style="opacity:.6;font-size:.65rem;cursor:default;justify-content:center">
-          <span id="adminPwdHint">hasło: noti123</span>
+          <span id="adminPwdHint">🔒 hasło chronione</span>
         </div>
       </div>
     </aside>
@@ -1259,7 +1275,7 @@
           <div class="admin-field">
             <label>Nowe hasło do panelu</label>
             <input id="admNewPassword" type="text" placeholder="wpisz nowe hasło">
-            <p class="hint">Domyślne: <strong>noti123</strong>. Zostaw puste, jeśli nie chcesz zmieniać.</p>
+            <p class="hint">Zostaw puste, jeśli nie chcesz zmieniać hasła.</p>
           </div>
           <div class="admin-field">
             <label>Domyślne zdjęcie kota (fallback)</label>
@@ -1267,7 +1283,7 @@
           </div>
           <div style="margin-top:.5rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:16px;background:var(--card)">
             <p style="font-size:.68rem;font-weight:700;color:var(--mut);margin-bottom:.2rem">🔐 Zapamiętaj hasło!</p>
-            <p style="font-size:.6rem;color:var(--dim);font-weight:600">Hasło jest przechowywane lokalnie w przeglądarce. Reset panelu przywraca domyślne "noti123".</p>
+            <p style="font-size:.6rem;color:var(--dim);font-weight:600">Hasło jest przechowywane jako SHA-256 hash w Firebase Firestore. Reset panelu przywraca domyślne hasło.</p>
           </div>
         </div>
 
@@ -1843,18 +1859,48 @@
 
 <script>
 const $ = id => document.getElementById(id);
-let ADMIN_PASSWORD = 'noti123';
 
-/* Wczytaj hasło z localStorage */
-try {
-  const savedPwd = localStorage.getItem('noti-admin-pwd');
-  if (savedPwd) ADMIN_PASSWORD = savedPwd;
-} catch {}
+/* ===== BEZPIECZNE HASŁO — SHA-256 hash w Firebase ===== */
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
-window.openAdminPanel = () => {
+/* Pobierz hash hasła z Firestore (albo z localStorage jako cache) */
+async function getAdminHash() {
+  /* Najpierw sprawdź Firestore */
+  try {
+    const doc = await db.collection('config').doc('adminAuth').get();
+    if (doc.exists) {
+      const data = doc.data();
+      if (data.passwordHash) {
+        localStorage.setItem('noti-admin-hash', data.passwordHash);
+        return data.passwordHash;
+      }
+    }
+  } catch(e) { console.warn('Firestore auth read error:', e); }
+  /* Fallback: localStorage cache */
+  const cached = localStorage.getItem('noti-admin-hash');
+  if (cached) return cached;
+  /* Pierwsze uruchomienie: zahashuj domyślne hasło i zapisz do Firestore */
+  const defaultHash = await hashPassword('noti123');
+  localStorage.setItem('noti-admin-hash', defaultHash);
+  try {
+    await db.collection('config').doc('adminAuth').set({ passwordHash: defaultHash }, { merge: true });
+  } catch(e) { console.warn('Firestore default hash write error:', e); }
+  return defaultHash;
+}
+
+window.openAdminPanel = async () => {
   const pass = prompt('Hasło panelu admina');
-  if (pass !== ADMIN_PASSWORD) {
-    if (pass !== null) alert('Nieprawidłowe hasło.');
+  if (!pass) return;
+  const inputHash = await hashPassword(pass);
+  const storedHash = await getAdminHash();
+  if (inputHash !== storedHash) {
+    alert('Nieprawidłowe hasło.');
     return;
   }
   /* Wywołaj funkcję openPanel z adminPanel IIFE przez zdarzenie niestandardowe */
@@ -2749,7 +2795,7 @@ const CAT_MESSAGES = [
   }
 
   /* ===== SYNC ===== */
-  function syncStateFromForm() {
+  async function syncStateFromForm() {
     edits.pageTitle = el('admPageTitle').value.trim() || defaults.pageTitle;
     edits.heroTitle = el('admHeroTitle')?.value.trim() || defaults.heroTitle;
     edits.subtitle = el('admSubtitle')?.value.trim() || defaults.subtitle;
@@ -2828,15 +2874,31 @@ const CAT_MESSAGES = [
       window.BDAY = Number(parts[2]);
     }
 
-    /* Hasło */
+    /* Hasło — bezpieczny zapis SHA-256 hash do Firestore */
     const newPwd = el('admNewPassword').value.trim();
     if (newPwd) {
-      ADMIN_PASSWORD = newPwd;
-      localStorage.setItem('noti-admin-pwd', newPwd);
-      el('adminPwdHint').textContent = 'hasło: ' + newPwd;
+      const newHash = await hashPassword(newPwd);
+      localStorage.setItem('noti-admin-hash', newHash);
+      try {
+        await db.collection('config').doc('adminAuth').set({ passwordHash: newHash }, { merge: true });
+        el('adminPwdHint').textContent = '🔒 hasło zmienione ✓';
+      } catch(e) {
+        console.warn('Firestore password save error:', e);
+        el('adminPwdHint').textContent = '🔒 hasło zmienione (lokalnie)';
+      }
     }
 
     localStorage.setItem(EDIT_KEY, JSON.stringify(edits));
+    /* ===== ZAPISZ DO FIRESTORE (globalnie dla wszystkich użytkowników) ===== */
+    try {
+      const firestoreData = {};
+      Object.keys(edits).forEach(k => { if (k !== 'games') firestoreData[k] = edits[k]; });
+      if (edits.games) firestoreData.games = JSON.parse(JSON.stringify(edits.games));
+      db.collection('config').doc('siteSettings').set(firestoreData, { merge: true })
+        .then(() => console.log('✦ Ustawienia zapisane w Firestore'))
+        .catch(e => console.warn('Błąd zapisu do Firestore:', e));
+    } catch(e) { console.warn('Firestore save error:', e); }
+
     state.config = {
       sectionOn: edits.wishSectionOn, open: edits.wishOpen,
       moderation: edits.wishModeration, birthdayOnly: edits.birthdayOnly,
@@ -2863,7 +2925,6 @@ const CAT_MESSAGES = [
   /* ===== EVENTY ===== */
   el('adminClose').addEventListener('click', () => {
     closePanel();
-    el('adminStatus').textContent = '🟢 panel zamknięty';
   });
   el('adminTrigger').addEventListener('click', () => {
     let clicks = parseInt(sessionStorage.getItem('admin-clicks') || '0') + 1;
@@ -3089,6 +3150,40 @@ const CAT_MESSAGES = [
 
     /* Zainicjalizuj podgląd globalnego motywu przy otwarciu panelu */
     updateGlobalThemePreview();
+
+    /* ===== FIRESTORE LISTENER — SYNC USTAWIEŃ DLA KAŻDEGO UŻYTKOWNIKA ===== */
+    try {
+      db.collection('config').doc('siteSettings').onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          /* Aktualizuj lokalny obiekt edits */
+          Object.keys(data).forEach(k => { edits[k] = data[k]; });
+          /* Zapisz do localStorage aby przetrwało przeładowanie */
+          localStorage.setItem(EDIT_KEY, JSON.stringify(edits));
+          /* Zastosuj zmiany na stronie */
+          applyText();
+          applyImages();
+          applyLinks();
+          applyCatMode(edits.catAnim || defaults.catAnim);
+          applyGames();
+          state.config = {
+            sectionOn: edits.wishSectionOn ?? defaults.wishSectionOn,
+            open: edits.wishOpen ?? defaults.wishOpen,
+            moderation: edits.wishModeration ?? defaults.wishModeration,
+            birthdayOnly: edits.birthdayOnly ?? defaults.birthdayOnly,
+            birthdayBlockOn: edits.birthdayBlockOn ?? defaults.birthdayBlockOn
+          };
+          applyWishSection();
+          /* Aktualizuj globalny motyw jeśli użytkownik nie ma osobistego */
+          if (!localStorage.getItem('noti-theme') && (edits.globalTheme || edits.globalCustomColor)) {
+            applyThemeToDOM(edits.globalTheme || 'moon', edits.globalCustomColor || '');
+          }
+          console.log('✦ Ustawienia zaktualizowane z Firestore (live sync)');
+        }
+      }, (error) => {
+        console.warn("Firestore listener error:", error);
+      });
+    } catch(e) { console.warn("Firestore listener init error:", e); }
   })();
 
 /* ================= KOPIOWANIE MAILA ================= */
@@ -3125,14 +3220,19 @@ const CAT_MESSAGES = [
   let target = 0, current = 0, raf = null;
   function measure() {
     const h = document.documentElement;
-    target = h.scrollTop / (h.scrollHeight - h.clientHeight || 1);
+    const maxScroll = h.scrollHeight - h.clientHeight;
+    if (maxScroll <= 0) return;
+    target = h.scrollTop / maxScroll;
+    target = Math.max(0, Math.min(1, target));
     if (!raf) raf = requestAnimationFrame(loop);
   }
   function loop() {
-    current += (target - current) * .12;
-    bar.style.transform = `scaleX(${current.toFixed(4)})`;
-    if (Math.abs(target - current) > .0004) raf = requestAnimationFrame(loop);
-    else { bar.style.transform = `scaleX(${target})`; raf = null; }
+    const prev = current;
+    current += (target - current) * 0.08;
+    if (Math.abs(current - prev) < 0.0001) current = target;
+    bar.style.transform = `scaleX(${current.toFixed(6)})`;
+    if (Math.abs(target - current) > 0.0002) raf = requestAnimationFrame(loop);
+    else { bar.style.transform = `scaleX(${target.toFixed(6)})`; raf = null; }
   }
   window.addEventListener('scroll', measure, { passive: true });
   measure();
