@@ -979,11 +979,6 @@
 </script>
 </head>
 
-<!-- Wklej ten kod na samym dole strony, przed </body> -->
-<!-- ZAUWAŻ: usunięto duplikat logiki muzyki z sekcji DOMContentLoaded.
-     Muzyka jest odpalana jedną, zintegrowaną implementacją niżej (musicInit / tryAutoPlay / startMusic z musicYTPlayer).
--->
-
 
 <body class="relative">
 
@@ -1343,6 +1338,14 @@
           <div style="display:flex;gap:.5rem;margin-top:.5rem">
             <button id="admMusicTest" class="btn-main" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">▶ przetestuj</button>
             <button id="admMusicStop" class="btn-line" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">⏹ zatrzymaj</button>
+          </div>
+          <!-- HISTORIA MUZYKI -->
+          <div class="admin-card-box" style="margin-top:.8rem">
+            <p class="admin-card-box-title">📜 historia dodanych piosenek</p>
+            <div id="admMusicHistoryList" style="max-height:180px;overflow-y:auto;display:grid;gap:.4rem"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.5rem">
+              <button id="admMusicHistoryClear" class="btn-line" style="flex:1;padding:.4rem;font-size:.65rem;border-radius:10px;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)">🗑 wyczyść historię</button>
+            </div>
           </div>
         </div>
 
@@ -2068,26 +2071,44 @@ function getYouTubeId(url) {
   return '';
 }
 
+// Pobiera tytuł filmu z YouTube przez oEmbed API
+function fetchYouTubeTitle(videoId) {
+  if (!videoId) return Promise.resolve('');
+  return fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(5000) })
+    .then(r => r.json())
+    .then(data => data.title || '')
+    .catch(() => '');
+}
+
+// Globalna zmienna z głośnością admina - ustawiana z Firestore
+var ADMIN_MUSIC_VOLUME = 30;
+
 function startMusic(videoId, label) {
   const container = $('musicFrame');
   const btn = $('musicBtn');
   if (!container || !videoId) return;
-  const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
+  // Pobierz głośność: najpierw sprawdź czy admin ustawił, potem localStorage użytkownika
+  const userVol = parseInt(localStorage.getItem('noti-music-vol'));
+  // Jeśli użytkownik nigdy nie zmieniał głośności (NaN lub brak klucza), użyj głośności admina
+  const vol = (userVol && !isNaN(userVol)) ? userVol : ADMIN_MUSIC_VOLUME;
   
-  /* Start with mute=1 to avoid loud burst, then set volume quietly */
-  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  /* Używamy niskiej głośności od razu (mute=0, volume=1), potem płynnie ustawiamy docelową głośność */
+  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=0" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   
-  // krótki czas na załadowanie iframe — bez 2s opóźnienia, żeby muzyka ruszyła szybciej
-  setTimeout(() => {
+  /* Ustaw głośność BARDZO SZYBKO po załadowaniu iframe (zamiast czekać 2s) */
+  let retries = 0;
+  const setVol = () => {
     try {
       const iframe = $('musicYTPlayer');
       if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+        return;
       }
     } catch {}
-  }, 350);
+    if (retries < 5) { retries++; setTimeout(setVol, 400); }
+  };
+  setVol();
   
   MUSIC_PLAYING = true;
   if (btn) {
@@ -2109,7 +2130,7 @@ function stopMusic() {
   }
 }
 
-// Słuchanie zmian w Firebase na żywo dla KAŻDEGO użytkownika
+// Słuchanie zmian w Firebase na żywo dla KAŻDEGO użytkownika  
 (function musicInit() {
   const btn = $('musicBtn');
   const volSlider = $('musicVolSlider');
@@ -2122,27 +2143,111 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Auto-start music quietly on page load
-  // Bezpieczne i natychmiastowe uruchomienie muzyki przy pierwszej interakcji ze stroną
-function tryAutoPlay() {
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-    if (volSlider) volSlider.classList.remove('show');
-    
-    // Usuwamy listenery po pierwszym uruchomieniu, żeby nie odpalać funkcji w kółko
+  // Najpierw pobierz ustawienia muzyki z Firebase, DOPIERO potem odpal muzykę
+  // Dzięki temu każdy użytkownik od razu słyszy to co admin ustawił
+  let firebaseDataLoaded = false;
+  
+  function tryAutoPlay() {
+    if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
+      startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.remove('show');
+    }
+  }
+  
+  function removeInteractionListeners() {
     document.removeEventListener('click', tryAutoPlay);
     document.removeEventListener('touchstart', tryAutoPlay);
     document.removeEventListener('scroll', tryAutoPlay);
   }
-}
 
-// 1. Próbujemy odpalić od razu (zadziała, jeśli użytkownik np. odświeżył stronę i przeglądarka mu ufa)
-tryAutoPlay();
+  // Pobieranie konfiguracji muzyki z Firebase (najpierw get, potem onSnapshot na żywo)
+  try {
+    // 1. Pobierz najpierw aktualną konfigurację (jednorazowo)
+    db.collection('config').doc('music').get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        const url = data.musicUrl || '';
+        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
+        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+      }
+      
+      // Aktualizacja podglądu w panelu admina
+      const preview = $('admMusicPreview');
+      if (preview) {
+        preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
+      }
+      
+      firebaseDataLoaded = true;
+      
+      // TERAZ zacznij grać - mamy już poprawny CURRENT_MUSIC_ID z Firestore
+      // Próbujemy odpalić OD RAZU (zadziała jeśli przeglądarka zezwala na autoplay)
+      tryAutoPlay();
+      
+      // Jeśli nie zadziałało, czekamy na interakcję użytkownika
+      document.addEventListener('click', tryAutoPlay);
+      document.addEventListener('touchstart', tryAutoPlay);
+      document.addEventListener('scroll', tryAutoPlay);
+    }).catch((error) => {
+      console.warn("Błąd pobierania muzyki z Firestore, używam domyślnej:", error);
+      firebaseDataLoaded = true;
+      tryAutoPlay();
+      document.addEventListener('click', tryAutoPlay);
+      document.addEventListener('touchstart', tryAutoPlay);
+      document.addEventListener('scroll', tryAutoPlay);
+    });
+    
+    // 2. Nasłuchuj na żywo zmian (gdy admin zmieni piosenkę)
+    db.collection('config').doc('music').onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        const url = data.musicUrl || '';
+        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
+        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+        
+        // Aktualizacja podglądu w panelu admina
+        const preview = $('admMusicPreview');
+        if (preview) {
+          preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
+        }
+        
+        // Jeśli muzyka gra, przełącz na nową automatycznie
+        if (MUSIC_PLAYING) {
+          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+        }
+      }
+    }, (error) => {
+      console.error("Błąd nasłuchiwania muzyki z Firebase:", error);
+    });
+  } catch (e) {
+    console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
+    firebaseDataLoaded = true;
+    tryAutoPlay();
+    document.addEventListener('click', tryAutoPlay);
+    document.addEventListener('touchstart', tryAutoPlay);
+    document.addEventListener('scroll', tryAutoPlay);
+  }
 
-// 2. Jeśli przeglądarka zablokowała, odpali się natychmiast przy najmniejszym ruchu użytkownika (kliknięcie, dotknięcie, scroll)
-document.addEventListener('click', tryAutoPlay);
-document.addEventListener('touchstart', tryAutoPlay);
-document.addEventListener('scroll', tryAutoPlay);
+  // Pokaż suwak głośności po najechaniu na przycisk muzyki
+  btn.addEventListener('mouseenter', () => {
+    if (volSlider) volSlider.classList.add('show');
+  });
+  btn.addEventListener('mouseleave', (e) => {
+    // Nie chowaj od razu - daj czas na przesunięcie myszy na suwak
+    setTimeout(() => {
+      if (volSlider && !volSlider.matches(':hover')) {
+        volSlider.classList.remove('show');
+      }
+    }, 200);
+  });
+  // Nie chowaj gdy mysz jest na suwaku
+  if (volSlider) {
+    volSlider.addEventListener('mouseenter', () => {
+      volSlider.classList.add('show');
+    });
+    volSlider.addEventListener('mouseleave', () => {
+      volSlider.classList.remove('show');
+    });
+  }
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2151,14 +2256,6 @@ document.addEventListener('scroll', tryAutoPlay);
       if (volSlider) volSlider.classList.remove('show');
     } else {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-      if (volSlider) volSlider.classList.add('show');
-    }
-  });
-
-  // Close volume slider on outside click
-  document.addEventListener('click', (e) => {
-    if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
-      volSlider.classList.remove('show');
     }
   });
 
@@ -2177,33 +2274,6 @@ document.addEventListener('scroll', tryAutoPlay);
         } catch {}
       }
     });
-  }
-
-  // Pobieranie konfiguracji muzyki z kolekcji 'config', dokumentu 'music' z Firebase
-  try {
-    db.collection('config').doc('music').onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        const url = data.musicUrl || '';
-        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
-        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
-        
-        // Aktualizacja podglądu w panelu admina (jeśli element istnieje na ekranie)
-        const preview = $('admMusicPreview');
-        if (preview) {
-          preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
-        }
-        
-        // Jeśli muzyka aktualnie gra, przełącz ją na nową automatycznie po zmianie przez admina
-        if (MUSIC_PLAYING) {
-          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-        }
-      }
-    }, (error) => {
-      console.error("Błąd pobierania muzyki z Firebase:", error);
-    });
-  } catch (e) {
-    console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
   }
 })();
 
@@ -3125,21 +3195,108 @@ const CAT_MESSAGES = [
       });
     }
 
+    // Funkcja renderująca historię muzyki
+    function renderMusicHistory() {
+      const list = $('admMusicHistoryList');
+      if (!list) return;
+      const history = JSON.parse(localStorage.getItem('noti-music-history') || '[]');
+      list.innerHTML = '';
+      if (history.length === 0) {
+        list.innerHTML = '<p style="font-size:.68rem;color:var(--dim);padding:.3rem">Brak zapisanej historii.</p>';
+        return;
+      }
+      // Pokaż ostatnie 10 pozycji (od najnowszych)
+      const items = history.slice(-10).reverse();
+      items.forEach((item, idx) => {
+        const d = document.createElement('div');
+        d.style.cssText = 'border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem;background:var(--card);display:flex;align-items:center;gap:.4rem;font-size:.7rem';
+        const labelText = item.label ? item.label + ' (' + item.id + ')' : item.id;
+        d.innerHTML = `
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)">🎵 ${labelText}</span>
+          <button class="btn-line adm-music-history-use" data-id="${item.id}" data-label="${item.label || ''}" style="border-radius:999px;padding:.2rem .5rem;font-size:.6rem;flex-shrink:0">użyj</button>
+        `;
+        list.appendChild(d);
+      });
+      // Delegacja eventów dla przycisków "użyj"
+      list.querySelectorAll('.adm-music-history-use').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const label = btn.dataset.label;
+          if (el('admMusicUrl')) el('admMusicUrl').value = id;
+          if (label && el('admMusicLabel')) el('admMusicLabel').value = label;
+        });
+      });
+    }
+
+    // Dodaj muzykę do historii (z localStorage)
+    function addToMusicHistory(url, label) {
+      const mid = getYouTubeId(url);
+      if (!mid) return;
+      let history = JSON.parse(localStorage.getItem('noti-music-history') || '[]');
+      // Nie dodawaj duplikatów (sprawdź po ID)
+      const exists = history.some(item => item.id === mid);
+      if (exists) {
+        // Przesuń na koniec (jako ostatnio użyta)
+        history = history.filter(item => item.id !== mid);
+      }
+      history.push({ id: mid, label: label || '', url: url, ts: Date.now() });
+      // Zachowaj max 20 pozycji
+      if (history.length > 20) history = history.slice(-20);
+      localStorage.setItem('noti-music-history', JSON.stringify(history));
+      renderMusicHistory();
+    }
+
+    // Wyczyść historię
+    el('admMusicHistoryClear')?.addEventListener('click', () => {
+      if (!confirm('Na pewno wyczyścić historię piosenek?')) return;
+      localStorage.removeItem('noti-music-history');
+      renderMusicHistory();
+    });
+
+    // Renderuj historię przy otwarciu panelu
+    renderMusicHistory();
+
+    // Auto-pobieranie tytułu z YouTube po wpisaniu URL
+    el('admMusicUrl')?.addEventListener('change', async () => {
+      const url = el('admMusicUrl').value.trim();
+      const mid = getYouTubeId(url);
+      if (!mid) return;
+      // Jeśli pole nazwy jest puste, pobierz tytuł automatycznie
+      if (!el('admMusicLabel').value.trim()) {
+        const title = await fetchYouTubeTitle(mid);
+        if (title) el('admMusicLabel').value = title;
+      }
+    });
+
     // PRZYCISK ZAPISZ / TESTUJ MUZYKĘ W PANELU ADMINA
     el('admMusicTest')?.addEventListener('click', async () => {
       const url = el('admMusicUrl')?.value?.trim() || '';
       const label = el('admMusicLabel')?.value?.trim() || '';
       const mid = getYouTubeId(url);
+      const vol = parseInt(el('admMusicVol')?.value || '30');
       
       if (!mid) { 
         alert('Wklej poprawny link YouTube lub sam ID wideo (11 znaków)!'); 
         return; 
       }
       
-      // 1. Od razu testowo odpalamy muzykę u Admina na ekranie
-      startMusic(mid, label);
+      // 1. Jeśli nie ma nazwy, pobierz automatycznie
+      let finalLabel = label;
+      if (!finalLabel) {
+        finalLabel = await fetchYouTubeTitle(mid);
+        if (el('admMusicLabel')) el('admMusicLabel').value = finalLabel || '';
+      }
 
-      // 2. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
+      // 2. Dodaj do historii
+      addToMusicHistory(url, finalLabel);
+
+      // 3. Od razu testowo odpalamy muzykę u Admina na ekranie
+      startMusic(mid, finalLabel);
+
+      // 4. Zapisujemy głośność do localStorage jako preferencja admina
+      localStorage.setItem('noti-music-vol', String(vol));
+
+      // 5. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
       try {
         const btn = el('admMusicTest');
         const oldText = btn.textContent;
@@ -3148,9 +3305,13 @@ const CAT_MESSAGES = [
 
         await db.collection('config').doc('music').set({
           musicUrl: url,
-          musicLabel: label,
+          musicLabel: finalLabel,
+          musicVolume: vol,
           updatedAt: Date.now()
         }, { merge: true });
+
+        // Aktualizuj globalną zmienną głośności admina
+        ADMIN_MUSIC_VOLUME = vol;
 
         btn.textContent = oldText;
         btn.disabled = false;
@@ -3685,140 +3846,6 @@ function renderWishQueue() {
     approved.slice(0, 20).forEach(item => {
       const d = document.createElement('div');
       d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.5rem .7rem;background:var(--card);margin-bottom:.3rem';
-      d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.4rem"><div style="min-width:0;flex:1"><p style="font-weight:700;font-size:.78rem;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.7rem;color:var(--mut);word-break:break-word">' + escapeHtml(item.t || '') + '</p></div><button class="btn-line" style="border-radius:999px;padding:.25rem .5rem;font-size:.6rem;flex-shrink:0;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)" data-wish-delete="' + item.id + '">✕ usuń</button></div>';
-      section.appendChild(d);
-    });
-    queue.appendChild(section);
-  }
-  
-  /* Pending wishes */
-  if (pending.length) {
-    const section = document.createElement('div');
-    section.style.cssText = 'margin-bottom:.5rem';
-    section.innerHTML = '<p style="font-size:.6rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem">⏳ oczekujące (' + pending.length + ')</p>';
-    pending.forEach(item => {
-      const d = document.createElement('div');
-      d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;background:var(--card);margin-bottom:.3rem';
-      d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.5rem;margin-bottom:.3rem"><div><p style="font-weight:700;font-size:.82rem;color:var(--txt)">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.6rem;color:var(--dim);font-family:JetBrains Mono,monospace">' + new Date(item.ts || Date.now()).toLocaleString('pl-PL') + '</p></div><span class="wish-chip">pending</span></div><p style="font-size:.78rem;color:var(--mut);margin-bottom:.4rem">' + escapeHtml(item.t || '') + '</p><div style="display:flex;gap:.4rem"><button class="btn-main" style="border-radius:999px;padding:.3rem .6rem;font-size:.65rem" data-approve="' + item.id + '">akceptuj</button><button class="btn-line" style="border-radius:999px;padding:.3rem .6rem;font-size:.65rem" data-reject="' + item.id + '">odrzuć</button></div>';
-      section.appendChild(d);
-    });
-    queue.appendChild(section);
-  }
-  
-  if (rejected.length) {
-    const d = document.createElement('div');
-    d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;opacity:.6';
-    d.innerHTML = '<p style="font-size:.6rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.3rem">odrzucone</p>' + rejected.map(item => '<p style="font-size:.75rem;color:var(--mut);margin-bottom:.15rem">' + escapeHtml(item.n || 'anonim') + ': ' + escapeHtml(item.t || '') + '</p>').join('');
-    queue.appendChild(d);
-  }
-  
-  if (!approved.length && !pending.length && !rejected.length) {
-    queue.innerHTML = '<div style="border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem"><p style="font-size:.78rem;color:var(--mut)">Brak życzeń.</p></div>';
-  }
-  
-  queue.querySelectorAll('[data-approve]').forEach(btn => btn.addEventListener('click', () => moderateWish(btn.dataset.approve, true)));
-  queue.querySelectorAll('[data-reject]').forEach(btn => btn.addEventListener('click', () => moderateWish(btn.dataset.reject, false)));
-  queue.querySelectorAll('[data-wish-delete]').forEach(btn => btn.addEventListener('click', () => deleteWish(btn.dataset.wishDelete)));
-}
-function deleteWish(id) {
-  const idx = (state.approved || []).findIndex(w => String(w.id) === String(id));
-  if (idx < 0) return;
-  if (!confirm('Na pewno usunąć to życzenie?')) return;
-  state.approved.splice(idx, 1);
-  persistWishState();
-  saveWishStore().catch(() => {});
-  renderWishes();
-  renderWishQueue();
-}
-function moderateWish(id, approve) {
-  const idx = (state.pending || []).findIndex(w => String(w.id) === String(id));
-  if (idx < 0) return;
-  const item = state.pending.splice(idx, 1)[0];
-  item.state = approve ? 'approved' : 'rejected';
-  if (approve) state.approved = [item, ...(state.approved || [])];
-  else state.rejected = [item, ...(state.rejected || [])].slice(0, 100);
-  persistWishState();
-  saveWishStore().catch(() => {});
-  renderWishes(); renderWishQueue();
-}
-async function saveWishStore() {
-  const body = new URLSearchParams();
-  body.append('key', WISH_DB_KEY); body.append('value', JSON.stringify(state));
-  await fetch(WISH_UPDATE_URL, { method: 'POST', body });
-}
-async function fetchWishes() {
-    try {
-      const r = await fetch(WISH_URL, { cache: 'no-store' });
-      const txt = (await r.text()).trim();
-      const data = txt ? JSON.parse(txt) : null;
-      if (data) Object.assign(state, normalizeWishState(data));
-      else Object.assign(state, normalizeWishState(JSON.parse(localStorage.getItem(localKey) || 'null')));
-  } catch { Object.assign(state, normalizeWishState(JSON.parse(localStorage.getItem(localKey) || 'null'))); }
-  if (!state.config) state.config = { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true };
-  localStorage.setItem(localKey, JSON.stringify(state));
-  applyWishUi(); renderWishes(); renderWishQueue();
-  return true;
-}
-function applyWishUi() {
-  const cfg = currentConfig();
-  const enabled = cfg.sectionOn !== false, open = cfg.open !== false;
-  const birthdayOnly = cfg.birthdayOnly !== false, birthdayBlockOn = cfg.birthdayBlockOn !== false;
-  const active = !birthdayOnly || isBirthdayToday();
-  const section = $('zyczenia'), birthdayBlock = $('birthdayBlock'), form = $('wishForm'), btn = $('wishBtn'), banner = $('wishStatusBanner');
-  if (section) section.style.display = enabled ? '' : 'none';
-  if (birthdayBlock) birthdayBlock.style.display = enabled && birthdayBlockOn && (!birthdayOnly || active) ? '' : 'none';
-  if (banner) banner.classList.toggle('hidden', enabled && open && active);
-  if (form) form.classList.toggle('opacity-60', !enabled || !open || (birthdayOnly && !active));
-  if (btn) { btn.disabled = !enabled || !open || (birthdayOnly && !active); btn.textContent = !enabled ? 'sekcja wyłączona' : !open ? 'wysyłka wstrzymana' : (birthdayOnly && !active) ? 'wróć w urodziny' : 'wyślij życzenia ✦'; }
-}
-if ($('wishText')) $('wishText').addEventListener('input', () => { $('wishCount').textContent = $('wishText').value.length + ' / 180'; });
-if ($('wishBtn')) {
-  $('wishBtn').addEventListener('click', async () => {
-    const n = $('wishName').value.trim(), t = $('wishText').value.trim(), btn = $('wishBtn');
-    if (!n || !t) { btn.textContent = 'uzupełnij imię i życzenia!'; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 1800); return; }
-    const cfg = currentConfig(), active = !cfg.birthdayOnly || isBirthdayToday();
-    if (cfg.sectionOn === false || cfg.open === false || !active) { btn.textContent = cfg.sectionOn === false ? 'sekcja wyłączona' : cfg.open === false ? 'wysyłka wstrzymana' : 'wróć w urodziny'; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 1800); btn.disabled = false; return; }
-    btn.textContent = 'wysyłam…'; btn.disabled = true;
-    try {
-      const wish = { id: Date.now() + Math.random().toString(36).slice(2), n, t, ts: Date.now(), state: cfg.moderation === false ? 'approved' : 'pending' };
-      if (cfg.moderation === false) state.approved = [wish, ...(state.approved || [])]; else state.pending = [wish, ...(state.pending || [])];
-      
-      // Zapisujemy lokalnie w przeglądarce
-      persistWishState(); 
-      
-      // Od razu pokazujemy sukces użytkownikowi na stronie
-      $('wishName').value = ''; 
-      $('wishText').value = '';
-      renderWishes(); 
-      renderWishQueue(); 
-      confettiBurst(70);
-      btn.textContent = cfg.moderation === false ? 'wysłane ✦ dziękujemy!' : 'wysłane do moderacji ✦';
-      
-      // Próba wysłania do bazy w tle - błąd sieci już nie zepsuje działania strony
-      try {
-        await saveWishStore();
-      } catch (e) {
-        console.warn("Zewnętrzna baza danych offline (zapisano lokalnie):", e);
-      }
-
-    } catch (err) {
-      // Ten zewnętrzny catch złapie błędy inne niż sieciowe (np. błąd składni)
-      btn.textContent = 'coś poszło nie tak ✦';
-      btn.disabled = false;
-    }
-    btn.disabled = false; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 2200);
-  });
-}
-window.renderWishes = renderWishes; window.renderWishQueue = renderWishQueue;
-fetchWishes();
-setInterval(fetchWishes, 15000);
-
-
-
-</script>
-</body>
-</html>
-rder-radius:12px;padding:.5rem .7rem;background:var(--card);margin-bottom:.3rem';
       d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.4rem"><div style="min-width:0;flex:1"><p style="font-weight:700;font-size:.78rem;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.7rem;color:var(--mut);word-break:break-word">' + escapeHtml(item.t || '') + '</p></div><button class="btn-line" style="border-radius:999px;padding:.25rem .5rem;font-size:.6rem;flex-shrink:0;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)" data-wish-delete="' + item.id + '">✕ usuń</button></div>';
       section.appendChild(d);
     });
