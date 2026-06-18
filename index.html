@@ -979,65 +979,6 @@
 </script>
 </head>
 
-<!-- Wklej ten kod na samym dole strony, przed </body> -->
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    // 1. Pobieramy piosenkę z bazy danych Firestore (tak jak w Twoim panelu)
-    db.collection("config").doc("music").get().then((doc) => {
-      if (doc.exists) {
-        const musicData = doc.data();
-        let videoId = musicData.url || "";
-        
-        // Wyciągamy ID jeśli wklejono cały link z YouTube
-        if (videoId.includes("v=")) {
-          videoId = videoId.split("v=")[1].split("&")[0];
-        } else if (videoId.includes("youtu.be/")) {
-          videoId = videoId.split("youtu.be/")[1].split("?")[0];
-        }
-
-        if (videoId) {
-          const volume = musicData.volume !== undefined ? musicData.volume : 30;
-          const musicFrame = document.getElementById("musicFrame");
-          const musicBtn = document.getElementById("musicBtn");
-
-          // Funkcja, która fizycznie włącza muzykę w iframe YouTube
-          function startMusic() {
-            if (musicFrame.innerHTML === "") {
-              // Dodajemy autoplay=1 oraz mute=0 do linku iframe
-              musicFrame.innerHTML = `<iframe id="ytPlayer" width="1" height="1" src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&controls=0&loop=1&playlist=${videoId}" allow="autoplay"></iframe>`;
-              
-              if (musicBtn) {
-                musicBtn.classList.add("playing");
-              }
-
-              // Ustawianie głośności po załadowaniu odtwarzacza API YouTube
-              setTimeout(() => {
-                const iframe = document.getElementById("ytPlayer");
-                if (iframe && iframe.contentWindow) {
-                  iframe.contentWindow.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [volume] }), "*");
-                }
-              }, 1500);
-            }
-          }
-
-          // 2. PRÓBA ODRAZU: Próbujemy odpalić od razu (jeśli przeglądarka pozwoli)
-          startMusic();
-
-          // 3. ROZWIĄZANIE PROBLEMU AUTOPLAY: Jeśli przeglądarka zablokowała, 
-          // muzyka odpali się przy pierwszym kliknięciu/dotknięciu ekranu przez widza
-          const playOnInteraction = () => {
-            startMusic();
-            document.removeEventListener('click', playOnInteraction);
-            document.removeEventListener('touchstart', playOnInteraction);
-          };
-          
-          document.addEventListener('click', playOnInteraction);
-          document.addEventListener('touchstart', playOnInteraction);
-        }
-      }
-    });
-  });
-</script>
 
 <body class="relative">
 
@@ -2128,19 +2069,23 @@ function startMusic(videoId, label) {
   if (!container || !videoId) return;
   const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
   
-  /* Start with mute=1 to avoid loud burst, then set volume quietly */
-  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  /* Używamy niskiej głośności od razu (mute=0, volume=1), potem płynnie ustawiamy docelową głośność */
+  container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=0" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   
-  setTimeout(() => {
+  /* Ustaw głośność BARDZO SZYBKO po załadowaniu iframe (zamiast czekać 2s) */
+  let retries = 0;
+  const setVol = () => {
     try {
       const iframe = $('musicYTPlayer');
       if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+        return;
       }
     } catch {}
-  }, 2000);
+    if (retries < 5) { retries++; setTimeout(setVol, 400); }
+  };
+  setVol();
   
   MUSIC_PLAYING = true;
   if (btn) {
@@ -2162,7 +2107,7 @@ function stopMusic() {
   }
 }
 
-// Słuchanie zmian w Firebase na żywo dla KAŻDEGO użytkownika
+// Słuchanie zmian w Firebase na żywo dla KAŻDEGO użytkownika  
 (function musicInit() {
   const btn = $('musicBtn');
   const volSlider = $('musicVolSlider');
@@ -2175,27 +2120,89 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Auto-start music quietly on page load
-  // Bezpieczne i natychmiastowe uruchomienie muzyki przy pierwszej interakcji ze stroną
-function tryAutoPlay() {
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-    if (volSlider) volSlider.classList.remove('show');
-    
-    // Usuwamy listenery po pierwszym uruchomieniu, żeby nie odpalać funkcji w kółko
+  // Najpierw pobierz ustawienia muzyki z Firebase, DOPIERO potem odpal muzykę
+  // Dzięki temu każdy użytkownik od razu słyszy to co admin ustawił
+  let firebaseDataLoaded = false;
+  
+  function tryAutoPlay() {
+    if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
+      startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.remove('show');
+    }
+  }
+  
+  function removeInteractionListeners() {
     document.removeEventListener('click', tryAutoPlay);
     document.removeEventListener('touchstart', tryAutoPlay);
     document.removeEventListener('scroll', tryAutoPlay);
   }
-}
 
-// 1. Próbujemy odpalić od razu (zadziała, jeśli użytkownik np. odświeżył stronę i przeglądarka mu ufa)
-tryAutoPlay();
-
-// 2. Jeśli przeglądarka zablokowała, odpali się natychmiast przy najmniejszym ruchu użytkownika (kliknięcie, dotknięcie, scroll)
-document.addEventListener('click', tryAutoPlay);
-document.addEventListener('touchstart', tryAutoPlay);
-document.addEventListener('scroll', tryAutoPlay);
+  // Pobieranie konfiguracji muzyki z Firebase (najpierw get, potem onSnapshot na żywo)
+  try {
+    // 1. Pobierz najpierw aktualną konfigurację (jednorazowo)
+    db.collection('config').doc('music').get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        const url = data.musicUrl || '';
+        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
+        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+      }
+      
+      // Aktualizacja podglądu w panelu admina
+      const preview = $('admMusicPreview');
+      if (preview) {
+        preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
+      }
+      
+      firebaseDataLoaded = true;
+      
+      // TERAZ zacznij grać - mamy już poprawny CURRENT_MUSIC_ID z Firestore
+      // Próbujemy odpalić OD RAZU (zadziała jeśli przeglądarka zezwala na autoplay)
+      tryAutoPlay();
+      
+      // Jeśli nie zadziałało, czekamy na interakcję użytkownika
+      document.addEventListener('click', tryAutoPlay);
+      document.addEventListener('touchstart', tryAutoPlay);
+      document.addEventListener('scroll', tryAutoPlay);
+    }).catch((error) => {
+      console.warn("Błąd pobierania muzyki z Firestore, używam domyślnej:", error);
+      firebaseDataLoaded = true;
+      tryAutoPlay();
+      document.addEventListener('click', tryAutoPlay);
+      document.addEventListener('touchstart', tryAutoPlay);
+      document.addEventListener('scroll', tryAutoPlay);
+    });
+    
+    // 2. Nasłuchuj na żywo zmian (gdy admin zmieni piosenkę)
+    db.collection('config').doc('music').onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        const url = data.musicUrl || '';
+        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
+        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+        
+        // Aktualizacja podglądu w panelu admina
+        const preview = $('admMusicPreview');
+        if (preview) {
+          preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
+        }
+        
+        // Jeśli muzyka gra, przełącz na nową automatycznie
+        if (MUSIC_PLAYING) {
+          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+        }
+      }
+    }, (error) => {
+      console.error("Błąd nasłuchiwania muzyki z Firebase:", error);
+    });
+  } catch (e) {
+    console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
+    firebaseDataLoaded = true;
+    tryAutoPlay();
+    document.addEventListener('click', tryAutoPlay);
+    document.addEventListener('touchstart', tryAutoPlay);
+    document.addEventListener('scroll', tryAutoPlay);
+  }
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2230,33 +2237,6 @@ document.addEventListener('scroll', tryAutoPlay);
         } catch {}
       }
     });
-  }
-
-  // Pobieranie konfiguracji muzyki z kolekcji 'config', dokumentu 'music' z Firebase
-  try {
-    db.collection('config').doc('music').onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        const url = data.musicUrl || '';
-        CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
-        CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
-        
-        // Aktualizacja podglądu w panelu admina (jeśli element istnieje na ekranie)
-        const preview = $('admMusicPreview');
-        if (preview) {
-          preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
-        }
-        
-        // Jeśli muzyka aktualnie gra, przełącz ją na nową automatycznie po zmianie przez admina
-        if (MUSIC_PLAYING) {
-          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-        }
-      }
-    }, (error) => {
-      console.error("Błąd pobierania muzyki z Firebase:", error);
-    });
-  } catch (e) {
-    console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
   }
 })();
 
