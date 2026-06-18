@@ -2077,17 +2077,16 @@ function startMusic(videoId, label) {
   /* Start with mute=1 to avoid loud burst, then set volume quietly */
   container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   
-  // krótki czas na załadowanie iframe — bez 2s opóźnienia, żeby muzyka ruszyła szybciej
-  setTimeout(() => {
-    try {
-      const iframe = $('musicYTPlayer');
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
-        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
-      }
-    } catch {}
-  }, 350);
+  // Bezpośrednio po wstawieniu iframe robimy commandy do YouTube.
+  // (Autoplay i tak zależy od polityk przeglądarki, ale eliminujemy dodatkowe opóźnienie.)
+  try {
+    const iframe = $('musicYTPlayer');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*');
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+    }
+  } catch {}
   
   MUSIC_PLAYING = true;
   if (btn) {
@@ -2125,15 +2124,17 @@ function stopMusic() {
   // Auto-start music quietly on page load
   // Bezpieczne i natychmiastowe uruchomienie muzyki przy pierwszej interakcji ze stroną
 function tryAutoPlay() {
-  if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
-    startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
-    if (volSlider) volSlider.classList.remove('show');
-    
-    // Usuwamy listenery po pierwszym uruchomieniu, żeby nie odpalać funkcji w kółko
-    document.removeEventListener('click', tryAutoPlay);
-    document.removeEventListener('touchstart', tryAutoPlay);
-    document.removeEventListener('scroll', tryAutoPlay);
-  }
+  if (MUSIC_PLAYING || !CURRENT_MUSIC_ID) return;
+
+  // Uruchamiamy możliwie szybko, ale bez ryzyka głośnego 'burst'
+  startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+
+  if (volSlider) volSlider.classList.remove('show');
+
+  // Usuwamy listenery po pierwszym uruchomieniu, żeby nie odpalać funkcji w kółko
+  document.removeEventListener('click', tryAutoPlay);
+  document.removeEventListener('touchstart', tryAutoPlay);
+  document.removeEventListener('scroll', tryAutoPlay);
 }
 
 // 1. Próbujemy odpalić od razu (zadziała, jeśli użytkownik np. odświeżył stronę i przeglądarka mu ufa)
