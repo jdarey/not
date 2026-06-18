@@ -2071,11 +2071,26 @@ function getYouTubeId(url) {
   return '';
 }
 
+// Pobiera tytuł filmu z YouTube przez oEmbed API
+function fetchYouTubeTitle(videoId) {
+  if (!videoId) return Promise.resolve('');
+  return fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(5000) })
+    .then(r => r.json())
+    .then(data => data.title || '')
+    .catch(() => '');
+}
+
+// Globalna zmienna z głośnością admina - ustawiana z Firestore
+var ADMIN_MUSIC_VOLUME = 30;
+
 function startMusic(videoId, label) {
   const container = $('musicFrame');
   const btn = $('musicBtn');
   if (!container || !videoId) return;
-  const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
+  // Pobierz głośność: najpierw sprawdź czy admin ustawił, potem localStorage użytkownika
+  const userVol = parseInt(localStorage.getItem('noti-music-vol'));
+  // Jeśli użytkownik nigdy nie zmieniał głośności (NaN lub brak klucza), użyj głośności admina
+  const vol = (userVol && !isNaN(userVol)) ? userVol : ADMIN_MUSIC_VOLUME;
   
   /* Używamy niskiej głośności od razu (mute=0, volume=1), potem płynnie ustawiamy docelową głośność */
   container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=0" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
@@ -3241,24 +3256,47 @@ const CAT_MESSAGES = [
     // Renderuj historię przy otwarciu panelu
     renderMusicHistory();
 
+    // Auto-pobieranie tytułu z YouTube po wpisaniu URL
+    el('admMusicUrl')?.addEventListener('change', async () => {
+      const url = el('admMusicUrl').value.trim();
+      const mid = getYouTubeId(url);
+      if (!mid) return;
+      // Jeśli pole nazwy jest puste, pobierz tytuł automatycznie
+      if (!el('admMusicLabel').value.trim()) {
+        const title = await fetchYouTubeTitle(mid);
+        if (title) el('admMusicLabel').value = title;
+      }
+    });
+
     // PRZYCISK ZAPISZ / TESTUJ MUZYKĘ W PANELU ADMINA
     el('admMusicTest')?.addEventListener('click', async () => {
       const url = el('admMusicUrl')?.value?.trim() || '';
       const label = el('admMusicLabel')?.value?.trim() || '';
       const mid = getYouTubeId(url);
+      const vol = parseInt(el('admMusicVol')?.value || '30');
       
       if (!mid) { 
         alert('Wklej poprawny link YouTube lub sam ID wideo (11 znaków)!'); 
         return; 
       }
       
-      // 1. Dodaj do historii
-      addToMusicHistory(url, label);
+      // 1. Jeśli nie ma nazwy, pobierz automatycznie
+      let finalLabel = label;
+      if (!finalLabel) {
+        finalLabel = await fetchYouTubeTitle(mid);
+        if (el('admMusicLabel')) el('admMusicLabel').value = finalLabel || '';
+      }
 
-      // 2. Od razu testowo odpalamy muzykę u Admina na ekranie
-      startMusic(mid, label);
+      // 2. Dodaj do historii
+      addToMusicHistory(url, finalLabel);
 
-      // 3. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
+      // 3. Od razu testowo odpalamy muzykę u Admina na ekranie
+      startMusic(mid, finalLabel);
+
+      // 4. Zapisujemy głośność do localStorage jako preferencja admina
+      localStorage.setItem('noti-music-vol', String(vol));
+
+      // 5. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
       try {
         const btn = el('admMusicTest');
         const oldText = btn.textContent;
@@ -3267,9 +3305,13 @@ const CAT_MESSAGES = [
 
         await db.collection('config').doc('music').set({
           musicUrl: url,
-          musicLabel: label,
+          musicLabel: finalLabel,
+          musicVolume: vol,
           updatedAt: Date.now()
         }, { merge: true });
+
+        // Aktualizuj globalną zmienną głośności admina
+        ADMIN_MUSIC_VOLUME = vol;
 
         btn.textContent = oldText;
         btn.disabled = false;
