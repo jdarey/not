@@ -2143,32 +2143,32 @@ function stopMusic() {
   if (volRange) volRange.value = savedVol;
   if (volLabel) volLabel.textContent = savedVol;
 
-  // Najpierw pobierz ustawienia muzyki z Firebase, DOPIERO potem odpal muzykę
-  // Dzięki temu każdy użytkownik od razu słyszy to co admin ustawił
-  let firebaseDataLoaded = false;
-  
   function tryAutoPlay() {
     if (!MUSIC_PLAYING && CURRENT_MUSIC_ID) {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
       if (volSlider) volSlider.classList.remove('show');
     }
   }
-  
-  function removeInteractionListeners() {
-    document.removeEventListener('click', tryAutoPlay);
-    document.removeEventListener('touchstart', tryAutoPlay);
-    document.removeEventListener('scroll', tryAutoPlay);
-  }
 
-  // Pobieranie konfiguracji muzyki z Firebase (najpierw get, potem onSnapshot na żywo)
+  
+  // Pobieranie konfiguracji muzyki z Firebase
+  // WAŻNE: Najpierw czekamy na odpowiedź z Firestore, DOPIERO potem próbujemy grać
+  // Dzięki temu użytkownik od razu słyszy piosenkę admina, a nie domyślną
   try {
-    // 1. Pobierz najpierw aktualną konfigurację (jednorazowo)
     db.collection('config').doc('music').get().then((doc) => {
       if (doc.exists) {
         const data = doc.data();
         const url = data.musicUrl || '';
         CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
         CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+        
+        // Aktualizuj głośność admina z Firestore
+        if (data.musicVolume !== undefined) {
+          ADMIN_MUSIC_VOLUME = parseInt(data.musicVolume);
+          localStorage.setItem('noti-music-vol', String(ADMIN_MUSIC_VOLUME));
+          if (volRange) volRange.value = ADMIN_MUSIC_VOLUME;
+          if (volLabel) volLabel.textContent = ADMIN_MUSIC_VOLUME;
+        }
       }
       
       // Aktualizacja podglądu w panelu admina
@@ -2177,9 +2177,7 @@ function stopMusic() {
         preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
       }
       
-      firebaseDataLoaded = true;
-      
-      // TERAZ zacznij grać - mamy już poprawny CURRENT_MUSIC_ID z Firestore
+      // TERAZ zacznij grać - mamy już poprawny CURRENT_MUSIC_ID z Firestore!
       // Próbujemy odpalić OD RAZU (zadziała jeśli przeglądarka zezwala na autoplay)
       tryAutoPlay();
       
@@ -2189,20 +2187,28 @@ function stopMusic() {
       document.addEventListener('scroll', tryAutoPlay);
     }).catch((error) => {
       console.warn("Błąd pobierania muzyki z Firestore, używam domyślnej:", error);
-      firebaseDataLoaded = true;
+      // Jeśli Firestore nie działa, graj domyślną
       tryAutoPlay();
       document.addEventListener('click', tryAutoPlay);
       document.addEventListener('touchstart', tryAutoPlay);
       document.addEventListener('scroll', tryAutoPlay);
     });
     
-    // 2. Nasłuchuj na żywo zmian (gdy admin zmieni piosenkę)
+    // Nasłuchuj na żywo zmian (gdy admin zmieni piosenkę)
     db.collection('config').doc('music').onSnapshot((doc) => {
       if (doc.exists) {
         const data = doc.data();
         const url = data.musicUrl || '';
         CURRENT_MUSIC_LABEL = data.musicLabel || DEFAULT_MUSIC_LABEL;
         CURRENT_MUSIC_ID = getYouTubeId(url) || DEFAULT_MUSIC_YT_ID;
+        
+        // Aktualizuj głośność admina
+        if (data.musicVolume !== undefined) {
+          ADMIN_MUSIC_VOLUME = parseInt(data.musicVolume);
+          localStorage.setItem('noti-music-vol', String(ADMIN_MUSIC_VOLUME));
+          if (volRange) volRange.value = ADMIN_MUSIC_VOLUME;
+          if (volLabel) volLabel.textContent = ADMIN_MUSIC_VOLUME;
+        }
         
         // Aktualizacja podglądu w panelu admina
         const preview = $('admMusicPreview');
@@ -2212,7 +2218,8 @@ function stopMusic() {
         
         // Jeśli muzyka gra, przełącz na nową automatycznie
         if (MUSIC_PLAYING) {
-          startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+          stopMusic();
+          setTimeout(() => startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL), 100);
         }
       }
     }, (error) => {
@@ -2220,7 +2227,6 @@ function stopMusic() {
     });
   } catch (e) {
     console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
-    firebaseDataLoaded = true;
     tryAutoPlay();
     document.addEventListener('click', tryAutoPlay);
     document.addEventListener('touchstart', tryAutoPlay);
