@@ -1339,14 +1339,6 @@
             <button id="admMusicTest" class="btn-main" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">▶ przetestuj</button>
             <button id="admMusicStop" class="btn-line" style="flex:1;padding:.6rem;font-size:.72rem;border-radius:12px">⏹ zatrzymaj</button>
           </div>
-          <!-- HISTORIA MUZYKI -->
-          <div class="admin-card-box" style="margin-top:.8rem">
-            <p class="admin-card-box-title">📜 historia dodanych piosenek</p>
-            <div id="admMusicHistoryList" style="max-height:180px;overflow-y:auto;display:grid;gap:.4rem"></div>
-            <div style="display:flex;gap:.5rem;margin-top:.5rem">
-              <button id="admMusicHistoryClear" class="btn-line" style="flex:1;padding:.4rem;font-size:.65rem;border-radius:10px;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)">🗑 wyczyść historię</button>
-            </div>
-          </div>
         </div>
 
         <!-- SEKCJA: MOTYW GLOBALNY -->
@@ -2071,26 +2063,11 @@ function getYouTubeId(url) {
   return '';
 }
 
-// Pobiera tytuł filmu z YouTube przez oEmbed API
-function fetchYouTubeTitle(videoId) {
-  if (!videoId) return Promise.resolve('');
-  return fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(5000) })
-    .then(r => r.json())
-    .then(data => data.title || '')
-    .catch(() => '');
-}
-
-// Globalna zmienna z głośnością admina - ustawiana z Firestore
-var ADMIN_MUSIC_VOLUME = 30;
-
 function startMusic(videoId, label) {
   const container = $('musicFrame');
   const btn = $('musicBtn');
   if (!container || !videoId) return;
-  // Pobierz głośność: najpierw sprawdź czy admin ustawił, potem localStorage użytkownika
-  const userVol = parseInt(localStorage.getItem('noti-music-vol'));
-  // Jeśli użytkownik nigdy nie zmieniał głośności (NaN lub brak klucza), użyj głośności admina
-  const vol = (userVol && !isNaN(userVol)) ? userVol : ADMIN_MUSIC_VOLUME;
+  const vol = parseInt(localStorage.getItem('noti-music-vol') || '50');
   
   /* Używamy niskiej głośności od razu (mute=0, volume=1), potem płynnie ustawiamy docelową głośność */
   container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=0" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
@@ -2227,28 +2204,6 @@ function stopMusic() {
     document.addEventListener('scroll', tryAutoPlay);
   }
 
-  // Pokaż suwak głośności po najechaniu na przycisk muzyki
-  btn.addEventListener('mouseenter', () => {
-    if (volSlider) volSlider.classList.add('show');
-  });
-  btn.addEventListener('mouseleave', (e) => {
-    // Nie chowaj od razu - daj czas na przesunięcie myszy na suwak
-    setTimeout(() => {
-      if (volSlider && !volSlider.matches(':hover')) {
-        volSlider.classList.remove('show');
-      }
-    }, 200);
-  });
-  // Nie chowaj gdy mysz jest na suwaku
-  if (volSlider) {
-    volSlider.addEventListener('mouseenter', () => {
-      volSlider.classList.add('show');
-    });
-    volSlider.addEventListener('mouseleave', () => {
-      volSlider.classList.remove('show');
-    });
-  }
-
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (MUSIC_PLAYING) {
@@ -2256,6 +2211,14 @@ function stopMusic() {
       if (volSlider) volSlider.classList.remove('show');
     } else {
       startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL);
+      if (volSlider) volSlider.classList.add('show');
+    }
+  });
+
+  // Close volume slider on outside click
+  document.addEventListener('click', (e) => {
+    if (volSlider && !volSlider.contains(e.target) && e.target !== btn) {
+      volSlider.classList.remove('show');
     }
   });
 
@@ -3195,108 +3158,21 @@ const CAT_MESSAGES = [
       });
     }
 
-    // Funkcja renderująca historię muzyki
-    function renderMusicHistory() {
-      const list = $('admMusicHistoryList');
-      if (!list) return;
-      const history = JSON.parse(localStorage.getItem('noti-music-history') || '[]');
-      list.innerHTML = '';
-      if (history.length === 0) {
-        list.innerHTML = '<p style="font-size:.68rem;color:var(--dim);padding:.3rem">Brak zapisanej historii.</p>';
-        return;
-      }
-      // Pokaż ostatnie 10 pozycji (od najnowszych)
-      const items = history.slice(-10).reverse();
-      items.forEach((item, idx) => {
-        const d = document.createElement('div');
-        d.style.cssText = 'border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem;background:var(--card);display:flex;align-items:center;gap:.4rem;font-size:.7rem';
-        const labelText = item.label ? item.label + ' (' + item.id + ')' : item.id;
-        d.innerHTML = `
-          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)">🎵 ${labelText}</span>
-          <button class="btn-line adm-music-history-use" data-id="${item.id}" data-label="${item.label || ''}" style="border-radius:999px;padding:.2rem .5rem;font-size:.6rem;flex-shrink:0">użyj</button>
-        `;
-        list.appendChild(d);
-      });
-      // Delegacja eventów dla przycisków "użyj"
-      list.querySelectorAll('.adm-music-history-use').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.dataset.id;
-          const label = btn.dataset.label;
-          if (el('admMusicUrl')) el('admMusicUrl').value = id;
-          if (label && el('admMusicLabel')) el('admMusicLabel').value = label;
-        });
-      });
-    }
-
-    // Dodaj muzykę do historii (z localStorage)
-    function addToMusicHistory(url, label) {
-      const mid = getYouTubeId(url);
-      if (!mid) return;
-      let history = JSON.parse(localStorage.getItem('noti-music-history') || '[]');
-      // Nie dodawaj duplikatów (sprawdź po ID)
-      const exists = history.some(item => item.id === mid);
-      if (exists) {
-        // Przesuń na koniec (jako ostatnio użyta)
-        history = history.filter(item => item.id !== mid);
-      }
-      history.push({ id: mid, label: label || '', url: url, ts: Date.now() });
-      // Zachowaj max 20 pozycji
-      if (history.length > 20) history = history.slice(-20);
-      localStorage.setItem('noti-music-history', JSON.stringify(history));
-      renderMusicHistory();
-    }
-
-    // Wyczyść historię
-    el('admMusicHistoryClear')?.addEventListener('click', () => {
-      if (!confirm('Na pewno wyczyścić historię piosenek?')) return;
-      localStorage.removeItem('noti-music-history');
-      renderMusicHistory();
-    });
-
-    // Renderuj historię przy otwarciu panelu
-    renderMusicHistory();
-
-    // Auto-pobieranie tytułu z YouTube po wpisaniu URL
-    el('admMusicUrl')?.addEventListener('change', async () => {
-      const url = el('admMusicUrl').value.trim();
-      const mid = getYouTubeId(url);
-      if (!mid) return;
-      // Jeśli pole nazwy jest puste, pobierz tytuł automatycznie
-      if (!el('admMusicLabel').value.trim()) {
-        const title = await fetchYouTubeTitle(mid);
-        if (title) el('admMusicLabel').value = title;
-      }
-    });
-
     // PRZYCISK ZAPISZ / TESTUJ MUZYKĘ W PANELU ADMINA
     el('admMusicTest')?.addEventListener('click', async () => {
       const url = el('admMusicUrl')?.value?.trim() || '';
       const label = el('admMusicLabel')?.value?.trim() || '';
       const mid = getYouTubeId(url);
-      const vol = parseInt(el('admMusicVol')?.value || '30');
       
       if (!mid) { 
         alert('Wklej poprawny link YouTube lub sam ID wideo (11 znaków)!'); 
         return; 
       }
       
-      // 1. Jeśli nie ma nazwy, pobierz automatycznie
-      let finalLabel = label;
-      if (!finalLabel) {
-        finalLabel = await fetchYouTubeTitle(mid);
-        if (el('admMusicLabel')) el('admMusicLabel').value = finalLabel || '';
-      }
+      // 1. Od razu testowo odpalamy muzykę u Admina na ekranie
+      startMusic(mid, label);
 
-      // 2. Dodaj do historii
-      addToMusicHistory(url, finalLabel);
-
-      // 3. Od razu testowo odpalamy muzykę u Admina na ekranie
-      startMusic(mid, finalLabel);
-
-      // 4. Zapisujemy głośność do localStorage jako preferencja admina
-      localStorage.setItem('noti-music-vol', String(vol));
-
-      // 5. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
+      // 2. WYSYŁAMY DO FIREBASE — od teraz każdy użytkownik pobierze ten utwór automatycznie!
       try {
         const btn = el('admMusicTest');
         const oldText = btn.textContent;
@@ -3305,13 +3181,9 @@ const CAT_MESSAGES = [
 
         await db.collection('config').doc('music').set({
           musicUrl: url,
-          musicLabel: finalLabel,
-          musicVolume: vol,
+          musicLabel: label,
           updatedAt: Date.now()
         }, { merge: true });
-
-        // Aktualizuj globalną zmienną głośności admina
-        ADMIN_MUSIC_VOLUME = vol;
 
         btn.textContent = oldText;
         btn.disabled = false;
