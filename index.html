@@ -2077,6 +2077,7 @@ function startMusic(videoId, label) {
   /* Start with mute=1 to avoid loud burst, then set volume quietly */
   container.innerHTML = `<iframe id="musicYTPlayer" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1&mute=1" style="width:200px;height:113px;border:none;pointer-events:none" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
   
+  // krótki czas na załadowanie iframe — bez 2s opóźnienia, żeby muzyka ruszyła szybciej
   setTimeout(() => {
     try {
       const iframe = $('musicYTPlayer');
@@ -2086,7 +2087,7 @@ function startMusic(videoId, label) {
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
       }
     } catch {}
-  }, 2000);
+  }, 350);
   
   MUSIC_PLAYING = true;
   if (btn) {
