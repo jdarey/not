@@ -2150,10 +2150,18 @@ function stopMusic() {
     }
   }
 
+  // KROK 1: OD RAZU próbujemy odpalić domyślną muzykę (synchronicznie)
+  // Dzięki temu jeśli przeglądarka pozwoli na autoplay, gra natychmiast!
+  tryAutoPlay();
   
-  // Pobieranie konfiguracji muzyki z Firebase
-  // WAŻNE: Najpierw czekamy na odpowiedź z Firestore, DOPIERO potem próbujemy grać
-  // Dzięki temu użytkownik od razu słyszy piosenkę admina, a nie domyślną
+  // KROK 2: OD RAZU dodajemy listenery interakcji na wypadek blokady autoplay
+  // Dzięki temu nawet przed odpowiedzią Firestore, kliknięcie/spacja/scrol uruchomi muzykę!
+  document.addEventListener('click', tryAutoPlay);
+  document.addEventListener('touchstart', tryAutoPlay);
+  document.addEventListener('scroll', tryAutoPlay);
+  
+  // KROK 3: W tle pobieramy ustawienia admina z Firestore
+  // Gdy przyjdą, nadpiszą domyślną piosenkę
   try {
     db.collection('config').doc('music').get().then((doc) => {
       if (doc.exists) {
@@ -2177,21 +2185,17 @@ function stopMusic() {
         preview.textContent = CURRENT_MUSIC_ID ? (CURRENT_MUSIC_LABEL || '🎵 piosenka ustawiona') : '— brak piosenki';
       }
       
-      // TERAZ zacznij grać - mamy już poprawny CURRENT_MUSIC_ID z Firestore!
-      // Próbujemy odpalić OD RAZU (zadziała jeśli przeglądarka zezwala na autoplay)
-      tryAutoPlay();
-      
-      // Jeśli nie zadziałało, czekamy na interakcję użytkownika
-      document.addEventListener('click', tryAutoPlay);
-      document.addEventListener('touchstart', tryAutoPlay);
-      document.addEventListener('scroll', tryAutoPlay);
+      // Jeśli muzyka JUŻ GRA (bo autoplay zadziałał z domyślną), przełącz na admina
+      // Jeśli NIE GRA, spróbuj odpalić z adminowym ID (autoplay może nadal działać)
+      if (MUSIC_PLAYING) {
+        stopMusic();
+        setTimeout(() => startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL), 50);
+      } else {
+        tryAutoPlay();
+      }
     }).catch((error) => {
-      console.warn("Błąd pobierania muzyki z Firestore, używam domyślnej:", error);
-      // Jeśli Firestore nie działa, graj domyślną
-      tryAutoPlay();
-      document.addEventListener('click', tryAutoPlay);
-      document.addEventListener('touchstart', tryAutoPlay);
-      document.addEventListener('scroll', tryAutoPlay);
+      console.warn("Błąd pobierania muzyki z Firestore:", error);
+      // Nic nie robimy - domyślna już zaczęła grać (lub czeka na interakcję)
     });
     
     // Nasłuchuj na żywo zmian (gdy admin zmieni piosenkę)
@@ -2219,7 +2223,7 @@ function stopMusic() {
         // Jeśli muzyka gra, przełącz na nową automatycznie
         if (MUSIC_PLAYING) {
           stopMusic();
-          setTimeout(() => startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL), 100);
+          setTimeout(() => startMusic(CURRENT_MUSIC_ID, CURRENT_MUSIC_LABEL), 50);
         }
       }
     }, (error) => {
@@ -2227,10 +2231,6 @@ function stopMusic() {
     });
   } catch (e) {
     console.warn("Brak inicjalizacji Firestore lub błąd połączenia:", e);
-    tryAutoPlay();
-    document.addEventListener('click', tryAutoPlay);
-    document.addEventListener('touchstart', tryAutoPlay);
-    document.addEventListener('scroll', tryAutoPlay);
   }
 
   // Pokaż suwak głośności po najechaniu na przycisk muzyki
