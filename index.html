@@ -46,7 +46,10 @@
 
   /* Custom color picker panel */
   .custom-picker-panel {
-    position: top;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: none;
   }
   .custom-picker-panel.open {
@@ -461,6 +464,8 @@
 
   .wish { background: var(--card); border: 1px solid var(--line); border-radius: 18px; animation: wIn .9s cubic-bezier(.25,.8,.25,1) both; transition: border-color .6s ease; }
   .wish:hover { border-color: var(--line2); }
+  .wish-chip { display: inline-block; background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; padding: .15rem .6rem; border-radius: 999px; font-size: .6rem; font-weight: 800; letter-spacing: .05em; }
+  .wish-disabled-banner { background: var(--card); border: 1px solid var(--line2); border-radius: 16px; padding: 1rem; text-align: center; }
   @keyframes wIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   .tdot { width: 24px; height: 24px; border-radius: 9999px; cursor: pointer; border: 2px solid transparent; transition: transform .45s cubic-bezier(.25,.8,.25,1), border-color .45s ease, box-shadow .45s ease; }
@@ -557,61 +562,7 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* ===== FLOATING THEME PICKER (for all users, local) ===== */
-  #themeToggle {
-    position: fixed; left: 72px; bottom: 18px; z-index: 90;
-    width: 44px; height: 44px; border-radius: 9999px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--card2); border: 1px solid var(--line2);
-    backdrop-filter: blur(10px); color: var(--acc-soft);
-    font-size: 1rem; cursor: pointer;
-    transition: box-shadow .4s ease, transform .3s ease, background .3s ease;
-  }
-  #themeToggle:hover { box-shadow: 0 8px 26px -8px var(--glow); transform: translateY(-2px); }
-  #themePopup {
-    position: fixed; left: 72px; bottom: 72px; z-index: 91;
-    border-radius: 20px; padding: 1.1rem;
-    background: rgba(10,1,23,.93); backdrop-filter: blur(24px);
-    border: 1px solid var(--line2);
-    box-shadow: 0 24px 64px -12px rgba(0,0,0,.5);
-    min-width: 240px; max-width: 260px;
-    opacity: 0; pointer-events: none; transform: translateY(10px) scale(.93);
-    transition: opacity .3s ease, transform .3s cubic-bezier(.25,.8,.25,1);
-  }
-  #themePopup.open { opacity: 1; pointer-events: auto; transform: none; }
-  #themePopup .tp-label {
-    font-size: .55rem; font-weight: 900; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--dim); margin-bottom: .6rem;
-  }
-  #themePopup .tp-presets {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; margin-bottom: .6rem;
-  }
-  #themePopup .tp-preset {
-    width: 100%; aspect-ratio: 1; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,.1); cursor: pointer;
-    transition: transform .2s ease, border-color .2s ease;
-  }
-  #themePopup .tp-preset:hover { transform: scale(1.15); }
-  #themePopup .tp-preset.active { border-color: #fff; box-shadow: 0 0 12px var(--glow); }
-  #themePopup .tp-row {
-    display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem;
-  }
-  #themePopup .tp-row input[type="color"] {
-    width: 32px; height: 32px; border: 2px solid rgba(255,255,255,.15); border-radius: 8px;
-    cursor: pointer; background: transparent; padding: 0;
-  }
-  #themePopup .tp-row span { font-size: .7rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  #themePopup .tp-actions { display: flex; gap: .4rem; }
-  #themePopup .tp-actions button {
-    flex: 1; padding: .4rem; border-radius: 10px; font-size: .65rem; font-weight: 800;
-    border: 1px solid var(--line2); background: var(--card2); color: var(--txt);
-    cursor: pointer; transition: background .2s;
-  }
-  #themePopup .tp-actions button:hover { background: color-mix(in srgb, var(--acc) 15%, var(--card2)); }
-  #themePopup .tp-actions button.tp-primary {
-    background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; border-color: transparent;
-  }
-
+  /* ===== Theme is now managed globally by admin via Firebase ===== */
   /* Admin theme preset buttons */
   .adm-theme-preset { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
   .adm-theme-preset:hover { transform: scale(1.12); }
@@ -1000,29 +951,7 @@
 
 
 
-<!-- ===== FLOATING THEME PICKER (dla każdego użytkownika, lokalnie) ===== -->
-<div id="themePopup">
-  <p class="tp-label">🎨 motyw (lokalnie)</p>
-  <div class="tp-presets">
-    <button class="tp-preset" data-theme="moon" style="background:linear-gradient(135deg,#9b20ff,#f200ff);box-shadow:0 4px 14px rgba(155,32,255,.4)"></button>
-    <button class="tp-preset" data-theme="custom" style="background:conic-gradient(from 0deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#ff6b6b)"></button>
-    <button class="tp-preset" data-color="#e11d48" style="background:linear-gradient(135deg,#e11d48,#ec4899)"></button>
-    <button class="tp-preset" data-color="#0284c7" style="background:linear-gradient(135deg,#0284c7,#06b6d4)"></button>
-    <button class="tp-preset" data-color="#ea580c" style="background:linear-gradient(135deg,#ea580c,#f59e0b)"></button>
-    <button class="tp-preset" data-color="#10b981" style="background:linear-gradient(135deg,#10b981,#34d399)"></button>
-    <button class="tp-preset" data-color="#f43f5e" style="background:linear-gradient(135deg,#f43f5e,#fb7185)"></button>
-    <button class="tp-preset" data-color="#06b6d4" style="background:linear-gradient(135deg,#06b6d4,#22d3ee)"></button>
-  </div>
-  <div class="tp-row">
-    <input type="color" id="tpColor" value="#9b20ff">
-    <span id="tpColorHex">#9b20ff</span>
-  </div>
-  <div class="tp-actions">
-    <button id="tpApply" class="tp-primary">✦ zastosuj</button>
-    <button id="tpReset">↺ moon</button>
-  </div>
-</div>
-
+<!-- ===== NOTYFIKACJA: motyw globalny zarządzany przez admina w Firebase ===== -->
 <!-- ===== MUZYKA W TLE (ukryty YouTube iframe + oEmbed) ===== -->
 <div id="musicFrame" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;border:none;overflow:hidden"></div>
 <button id="musicBtn" aria-label="muzyka w tle" title="🎵 muzyka w tle">🎵</button>
@@ -1482,7 +1411,7 @@
         <p class="text-[.66rem] font-bold t-dim mt-3 text-center" id="bdaySub">odliczanie na żywo ✦</p>
       </div>
 
-      <div class="reveal tile tile-h p-6" style="transition-delay:.18s">
+        <div class="reveal tile tile-h p-6" style="transition-delay:.18s">
         <div class="flex items-center justify-between mb-4">
           <p class="label">statystyki</p>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
@@ -1499,6 +1428,7 @@
           <span class="num-disp text-2xl t-acc" id="ttHearts">···</span>
           <span class="text-[.62rem] font-bold t-dim">serduszek ♡</span>
         </div>
+        <p id="ttUpdated" class="text-[.55rem] font-bold t-dim mt-3 text-center" style="letter-spacing:.08em">pobieram aktualne dane…</p>
       </div>
 
       <div class="reveal tile tile-h p-6 flex flex-col" style="transition-delay:.24s">
@@ -1543,6 +1473,7 @@
         <div class="tile tile-glow tile-h p-6 sm:p-7 flex-1">
           <div class="flex items-center gap-3 mb-4">
             <span id="statusDot" class="w-3 h-3 rounded-full shrink-0" style="background: var(--dim);"></span>
+            <span id="statusText" class="text-xs font-bold t-mut">sprawdzam...</span>
           </div>
           <p class="uptime-disp grad-txt" id="uptimeText">--:--:--</p>
           <p class="label mt-2 mb-5" id="labelUptime">czas trwania streama</p>
@@ -2312,100 +2243,7 @@ function applyTheme(name) {
     applyThemeToDOM(g.name, g.color);
   }
 })();
-/* ===== PŁYWAJĄCY PRYCISK MOTYWU (dla każdego, lokalnie) ===== */
-(function floatingTheme() {
-  const toggle = $('themeToggle');
-  const popup = $('themePopup');
-  const tpColor = $('tpColor');
-  const tpColorHex = $('tpColorHex');
-  const tpApply = $('tpApply');
-  const tpReset = $('tpReset');
-  if (!toggle || !popup) return;
-
-  /* Init */
-  if (tpColor) {
-    tpColor.value = localStorage.getItem('noti-custom-color') || '#8b5cf6';
-    if (tpColorHex) tpColorHex.textContent = tpColor.value;
-  }
-
-  /* Toggle popup */
-  toggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    popup.classList.toggle('open');
-  });
-
-  /* Close popup on outside click */
-  document.addEventListener('click', (e) => {
-    if (!popup.contains(e.target) && e.target !== toggle) {
-      popup.classList.remove('open');
-    }
-  });
-
-  /* Theme preset buttons in popup */
-  popup.querySelectorAll('.tp-preset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const theme = btn.dataset.theme;
-      const color = btn.dataset.color;
-      if (theme === 'moon') {
-        localStorage.removeItem('noti-custom-color');
-        applyTheme('moon');
-      } else if (theme === 'custom') {
-        const saved = localStorage.getItem('noti-custom-color') || '#8b5cf6';
-        if (tpColor) tpColor.value = saved;
-        if (tpColorHex) tpColorHex.textContent = saved;
-        applyCustomTheme(saved);
-        applyTheme('custom');
-      } else if (color) {
-        if (tpColor) tpColor.value = color;
-        if (tpColorHex) tpColorHex.textContent = color;
-        applyCustomTheme(color);
-        localStorage.setItem('noti-custom-color', color);
-        localStorage.setItem('noti-theme', 'custom');
-        applyTheme('custom');
-      }
-      /* update active state */
-      popup.querySelectorAll('.tp-preset').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-
-  /* Color input live preview */
-  if (tpColor) {
-    tpColor.addEventListener('input', () => {
-      if (tpColorHex) tpColorHex.textContent = tpColor.value;
-      applyCustomTheme(tpColor.value);
-    });
-  }
-
-  /* Apply button */
-  if (tpApply) {
-    tpApply.addEventListener('click', () => {
-      if (tpColor) {
-        localStorage.setItem('noti-custom-color', tpColor.value);
-        localStorage.setItem('noti-theme', 'custom');
-        applyTheme('custom');
-        popup.classList.remove('open');
-      }
-    });
-  }
-
-  /* Reset button — usuwa osobisty motyw i przywraca globalny */
-  if (tpReset) {
-    tpReset.addEventListener('click', () => {
-      localStorage.removeItem('noti-custom-color');
-      localStorage.removeItem('noti-theme');
-      const g = getGlobalTheme();
-      applyThemeToDOM(g.name, g.color);
-      if (tpColor) {
-        tpColor.value = g.color || '#8b5cf6';
-        if (tpColorHex) tpColorHex.textContent = tpColor.value;
-      }
-      popup.querySelectorAll('.tp-preset').forEach(p => p.classList.remove('active'));
-      popup.classList.remove('open');
-    });
-  }
-})();
-
+/* ===== LOCAL THEME PICKER REMOVED — motyw zarządzany globalnie przez admina przez Firebase ===== */
 /* ================= ŁADNE SCROLLOWANIE ================= */
 (function prettyScroll() {
   const DUR = 1100, OFFSET = 84;
@@ -3645,7 +3483,7 @@ const WISH_DB_KEY = 'notimoon-bday-wishes-v2';
 const WISH_URL = 'https://textdb.online/' + WISH_DB_KEY;
 const WISH_UPDATE_URL = 'https://textdb.online/update/';
 const localKey = 'noti-wishes-backup';
-const state = window.__notiWishState = window.__notiWishState || { approved: [], pending: [], rejected: [], config: { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true } };
+var state = window.__notiWishState = window.__notiWishState || { approved: [], pending: [], rejected: [], config: { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true } };
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
 function normalizeWishState(raw) {
   if (Array.isArray(raw)) return { approved: raw.map(w => ({ ...w, state: 'approved' })), pending: [], rejected: [], config: { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true } };
@@ -3684,140 +3522,6 @@ function renderWishQueue() {
     approved.slice(0, 20).forEach(item => {
       const d = document.createElement('div');
       d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.5rem .7rem;background:var(--card);margin-bottom:.3rem';
-      d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.4rem"><div style="min-width:0;flex:1"><p style="font-weight:700;font-size:.78rem;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.7rem;color:var(--mut);word-break:break-word">' + escapeHtml(item.t || '') + '</p></div><button class="btn-line" style="border-radius:999px;padding:.25rem .5rem;font-size:.6rem;flex-shrink:0;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)" data-wish-delete="' + item.id + '">✕ usuń</button></div>';
-      section.appendChild(d);
-    });
-    queue.appendChild(section);
-  }
-  
-  /* Pending wishes */
-  if (pending.length) {
-    const section = document.createElement('div');
-    section.style.cssText = 'margin-bottom:.5rem';
-    section.innerHTML = '<p style="font-size:.6rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem">⏳ oczekujące (' + pending.length + ')</p>';
-    pending.forEach(item => {
-      const d = document.createElement('div');
-      d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;background:var(--card);margin-bottom:.3rem';
-      d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.5rem;margin-bottom:.3rem"><div><p style="font-weight:700;font-size:.82rem;color:var(--txt)">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.6rem;color:var(--dim);font-family:JetBrains Mono,monospace">' + new Date(item.ts || Date.now()).toLocaleString('pl-PL') + '</p></div><span class="wish-chip">pending</span></div><p style="font-size:.78rem;color:var(--mut);margin-bottom:.4rem">' + escapeHtml(item.t || '') + '</p><div style="display:flex;gap:.4rem"><button class="btn-main" style="border-radius:999px;padding:.3rem .6rem;font-size:.65rem" data-approve="' + item.id + '">akceptuj</button><button class="btn-line" style="border-radius:999px;padding:.3rem .6rem;font-size:.65rem" data-reject="' + item.id + '">odrzuć</button></div>';
-      section.appendChild(d);
-    });
-    queue.appendChild(section);
-  }
-  
-  if (rejected.length) {
-    const d = document.createElement('div');
-    d.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;opacity:.6';
-    d.innerHTML = '<p style="font-size:.6rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.3rem">odrzucone</p>' + rejected.map(item => '<p style="font-size:.75rem;color:var(--mut);margin-bottom:.15rem">' + escapeHtml(item.n || 'anonim') + ': ' + escapeHtml(item.t || '') + '</p>').join('');
-    queue.appendChild(d);
-  }
-  
-  if (!approved.length && !pending.length && !rejected.length) {
-    queue.innerHTML = '<div style="border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem"><p style="font-size:.78rem;color:var(--mut)">Brak życzeń.</p></div>';
-  }
-  
-  queue.querySelectorAll('[data-approve]').forEach(btn => btn.addEventListener('click', () => moderateWish(btn.dataset.approve, true)));
-  queue.querySelectorAll('[data-reject]').forEach(btn => btn.addEventListener('click', () => moderateWish(btn.dataset.reject, false)));
-  queue.querySelectorAll('[data-wish-delete]').forEach(btn => btn.addEventListener('click', () => deleteWish(btn.dataset.wishDelete)));
-}
-function deleteWish(id) {
-  const idx = (state.approved || []).findIndex(w => String(w.id) === String(id));
-  if (idx < 0) return;
-  if (!confirm('Na pewno usunąć to życzenie?')) return;
-  state.approved.splice(idx, 1);
-  persistWishState();
-  saveWishStore().catch(() => {});
-  renderWishes();
-  renderWishQueue();
-}
-function moderateWish(id, approve) {
-  const idx = (state.pending || []).findIndex(w => String(w.id) === String(id));
-  if (idx < 0) return;
-  const item = state.pending.splice(idx, 1)[0];
-  item.state = approve ? 'approved' : 'rejected';
-  if (approve) state.approved = [item, ...(state.approved || [])];
-  else state.rejected = [item, ...(state.rejected || [])].slice(0, 100);
-  persistWishState();
-  saveWishStore().catch(() => {});
-  renderWishes(); renderWishQueue();
-}
-async function saveWishStore() {
-  const body = new URLSearchParams();
-  body.append('key', WISH_DB_KEY); body.append('value', JSON.stringify(state));
-  await fetch(WISH_UPDATE_URL, { method: 'POST', body });
-}
-async function fetchWishes() {
-    try {
-      const r = await fetch(WISH_URL, { cache: 'no-store' });
-      const txt = (await r.text()).trim();
-      const data = txt ? JSON.parse(txt) : null;
-      if (data) Object.assign(state, normalizeWishState(data));
-      else Object.assign(state, normalizeWishState(JSON.parse(localStorage.getItem(localKey) || 'null')));
-  } catch { Object.assign(state, normalizeWishState(JSON.parse(localStorage.getItem(localKey) || 'null'))); }
-  if (!state.config) state.config = { sectionOn: true, open: true, moderation: true, birthdayOnly: true, birthdayBlockOn: true };
-  localStorage.setItem(localKey, JSON.stringify(state));
-  applyWishUi(); renderWishes(); renderWishQueue();
-  return true;
-}
-function applyWishUi() {
-  const cfg = currentConfig();
-  const enabled = cfg.sectionOn !== false, open = cfg.open !== false;
-  const birthdayOnly = cfg.birthdayOnly !== false, birthdayBlockOn = cfg.birthdayBlockOn !== false;
-  const active = !birthdayOnly || isBirthdayToday();
-  const section = $('zyczenia'), birthdayBlock = $('birthdayBlock'), form = $('wishForm'), btn = $('wishBtn'), banner = $('wishStatusBanner');
-  if (section) section.style.display = enabled ? '' : 'none';
-  if (birthdayBlock) birthdayBlock.style.display = enabled && birthdayBlockOn && (!birthdayOnly || active) ? '' : 'none';
-  if (banner) banner.classList.toggle('hidden', enabled && open && active);
-  if (form) form.classList.toggle('opacity-60', !enabled || !open || (birthdayOnly && !active));
-  if (btn) { btn.disabled = !enabled || !open || (birthdayOnly && !active); btn.textContent = !enabled ? 'sekcja wyłączona' : !open ? 'wysyłka wstrzymana' : (birthdayOnly && !active) ? 'wróć w urodziny' : 'wyślij życzenia ✦'; }
-}
-if ($('wishText')) $('wishText').addEventListener('input', () => { $('wishCount').textContent = $('wishText').value.length + ' / 180'; });
-if ($('wishBtn')) {
-  $('wishBtn').addEventListener('click', async () => {
-    const n = $('wishName').value.trim(), t = $('wishText').value.trim(), btn = $('wishBtn');
-    if (!n || !t) { btn.textContent = 'uzupełnij imię i życzenia!'; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 1800); return; }
-    const cfg = currentConfig(), active = !cfg.birthdayOnly || isBirthdayToday();
-    if (cfg.sectionOn === false || cfg.open === false || !active) { btn.textContent = cfg.sectionOn === false ? 'sekcja wyłączona' : cfg.open === false ? 'wysyłka wstrzymana' : 'wróć w urodziny'; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 1800); btn.disabled = false; return; }
-    btn.textContent = 'wysyłam…'; btn.disabled = true;
-    try {
-      const wish = { id: Date.now() + Math.random().toString(36).slice(2), n, t, ts: Date.now(), state: cfg.moderation === false ? 'approved' : 'pending' };
-      if (cfg.moderation === false) state.approved = [wish, ...(state.approved || [])]; else state.pending = [wish, ...(state.pending || [])];
-      
-      // Zapisujemy lokalnie w przeglądarce
-      persistWishState(); 
-      
-      // Od razu pokazujemy sukces użytkownikowi na stronie
-      $('wishName').value = ''; 
-      $('wishText').value = '';
-      renderWishes(); 
-      renderWishQueue(); 
-      confettiBurst(70);
-      btn.textContent = cfg.moderation === false ? 'wysłane ✦ dziękujemy!' : 'wysłane do moderacji ✦';
-      
-      // Próba wysłania do bazy w tle - błąd sieci już nie zepsuje działania strony
-      try {
-        await saveWishStore();
-      } catch (e) {
-        console.warn("Zewnętrzna baza danych offline (zapisano lokalnie):", e);
-      }
-
-    } catch (err) {
-      // Ten zewnętrzny catch złapie błędy inne niż sieciowe (np. błąd składni)
-      btn.textContent = 'coś poszło nie tak ✦';
-      btn.disabled = false;
-    }
-    btn.disabled = false; setTimeout(() => btn.textContent = 'wyślij życzenia ✦', 2200);
-  });
-}
-window.renderWishes = renderWishes; window.renderWishQueue = renderWishQueue;
-fetchWishes();
-setInterval(fetchWishes, 15000);
-
-
-
-</script>
-</body>
-</html>
-rder-radius:12px;padding:.5rem .7rem;background:var(--card);margin-bottom:.3rem';
       d.innerHTML = '<div style="display:flex;align-items:start;justify-content:space-between;gap:.4rem"><div style="min-width:0;flex:1"><p style="font-weight:700;font-size:.78rem;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(item.n || 'anonim') + '</p><p style="font-size:.7rem;color:var(--mut);word-break:break-word">' + escapeHtml(item.t || '') + '</p></div><button class="btn-line" style="border-radius:999px;padding:.25rem .5rem;font-size:.6rem;flex-shrink:0;color:rgba(239,68,68,.8);border-color:rgba(239,68,68,.25)" data-wish-delete="' + item.id + '">✕ usuń</button></div>';
       section.appendChild(d);
     });
